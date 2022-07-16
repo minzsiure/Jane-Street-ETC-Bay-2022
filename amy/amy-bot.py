@@ -7,15 +7,12 @@
 import argparse
 from collections import deque
 from enum import Enum
-import math
 import time
 import socket
 import json
 
 # ~~~~~============== CONFIGURATION  ==============~~~~~
 # Replace "REPLACEME" with your team name!
-team_name = "BASKINGSHARKS"
-pending_positions = {}
 team_name = "BASKINGSHARKS"
 all_orders = {} 
 positions = {}
@@ -44,9 +41,12 @@ ask_price = {}
 # code is intended to be a working example, but it needs some improvement
 # before it will start making good trades!
 
+
 def main():
     args = parse_arguments()
-    symbols = ["BOND", "VALBZ", "VALE", "GS", "MS", "WFC", "XLF"]
+
+    symbols = ["BOND", "VALE", "VALBZ", "GS", "MS", "WFC", "XLF"]
+
     for symbol in symbols:
         positions[symbol] = 0
         pending_positions[symbol] = {}
@@ -75,54 +75,8 @@ def main():
     # Send an order for BOND at a good price, but it is low enough that it is
     # unlikely it will be traded against. Maybe there is a better price to
     # pick? Also, you will need to send more orders over time.
-    #exchange.send_add_message(symbol="BOND", dir=Dir.BUY, price=999, size=100)
-    #exchange.send_add_message(symbol="BOND", dir=Dir.SELL, price=1001, size=100)
-
-    # Set up some variables to track the bid and ask price of a symbol. Right
-    # now this doesn't track much information, but it's enough to get a sense
-    # of the VALE market.'
     exchange.send_add_message(symbol="BOND", dir=Dir.BUY, price=999, size=100)
     exchange.send_add_message(symbol="BOND", dir=Dir.SELL, price=1001, size=100)
-    
-    for symbol in symbols:
-        positions[symbol] = 0
-        pending_positions[symbol] = {}
-        pending_positions[symbol]["buy"] = 0
-        pending_positions[symbol]["sell"] = 0
-    for symbol in symbols:
-        bid_price[symbol] = None
-        ask_price[symbol] = None
-        fair_value[symbol] = None
-    fair_value["BOND"] = 1000
-    past_wt = 0.8
-    cur_wt = 1 - past_wt
-
-    def update_fair_value(message):
-        symbol = message["symbol"]
-        if message["buy"]:
-            bid_price[symbol] = message["buy"][0][0]
-        if message["sell"]:
-            ask_price[symbol] = message["sell"][0][0]
-        if symbol in {"VALBZ", "GS", "MS", "WFC"}:
-            if bid_price[symbol] and ask_price[symbol]:
-                cur_price = (bid_price[symbol] + ask_price[symbol]) / 2
-            elif bid_price[symbol]:
-                cur_price = bid_price[symbol]
-            elif ask_price[symbol]:
-                cur_price = ask_price[symbol]
-            if fair_value[symbol]:
-                fair_value[symbol] = past_wt * fair_value[symbol] + cur_wt * cur_price
-            else:
-                # once we have market price, place an initial order of 50
-                print(fair_value)
-                fair_value[symbol] = cur_price
-        fair_value["VALE"] = fair_value["VALBZ"]
-        if fair_value["BOND"] and fair_value["GS"] and fair_value["MS"] and fair_value["WFC"]:
-            fair_value["XTF"] = (3 * fair_value["BOND"] + 2 * fair_value["GS"] + 3 * fair_value["MS"] + 2 * fair_value["WFC"]) / 10
-        if message["buy"] and fair_value[symbol] and message["buy"][0][0] > 1.0005 * fair_value[symbol]:
-            exchange.send_add_message(symbol=symbol, dir=Dir.SELL, price=message["buy"][0][0], size=20)
-        if message["sell"] and fair_value[symbol] and message["sell"][0][0] < 0.9995 * fair_value[symbol]:
-            exchange.send_add_message(symbol=symbol, dir=Dir.BUY, price=message["sell"][0][0], size=20)
 
     # Here is the main loop of the program. It will continue to read and
     # process messages in a loop until a "close" message is received. You
@@ -154,29 +108,64 @@ def main():
             print(message)
         elif message["type"] == "fill":
             print(message)
+
             symbol = message["symbol"]
             dir = message["dir"]
             size = message["size"]
+
             if dir == Dir.BUY:
                 positions[symbol] += size
                 pending_positions[symbol]["buy"] -= size
 
-                if symbol == "BOND":
-                    exchange.send_limit_add_message(symbol="BOND", dir=Dir.SELL, price=1001)
-                #if symbol == "VALE" and bid_price["VALBZ"]:
-                #    exchange.send_limit_add_message(symbol="VALBZ", dir=Dir.SELL, price=bid_price["VALBZ"])
-                #if symbol == "VALBZ" and bid_price["VALE"]:
-                #    exchange.send_limit_add_message(symbol="VALE", dir=Dir.SELL, price=bid_price["VALE"])
+                #if symbol == "BOND":
+                #    exchange.send_limit_add_message(symbol="BOND", dir=Dir.SELL, price=1001)
+                # if symbol == "VALE" and bid_price["VALBZ"]:
+                #     exchange.send_limit_add_message(symbol="VALBZ", dir=Dir.SELL, price=bid_price["VALBZ"])
+                # if symbol == "VALBZ" and bid_price["VALE"]:
+                #     exchange.send_limit_add_message(symbol="VALE", dir=Dir.SELL, price=bid_price["VALE"])
+
             else:
                 positions[symbol] -= size
                 pending_positions[symbol]["sell"] -= size
 
-                if symbol == "BOND":
-                    exchange.send_limit_add_message(symbol="BOND", dir=Dir.BUY, price=999)
+                #if symbol == "BOND":
+                #    exchange.send_limit_add_message(symbol="BOND", dir=Dir.BUY, price=999)
+
         elif message["type"] == "book":
-            update_fair_value(message)
-            #if symbol == "VALE" or symbol == "VALBZ":
-            #    vale_valbz_arbitrage(exchange=exchange)
+            update_fair_value(exchange, message)
+            #i = 0
+            # Always run arbitrage buying engine. 
+            # vale_valbz_arbitrage(exchange=exchange)
+
+
+def update_fair_value(exchange, message):
+    past_wt = 0.8
+    cur_wt = 1 - past_wt
+    symbol = message["symbol"]
+    if message["buy"]:
+        bid_price[symbol] = message["buy"][0][0]
+    if message["sell"]:
+        ask_price[symbol] = message["sell"][0][0]
+    if symbol in {"VALBZ", "GS", "MS", "WFC"}:
+        if bid_price[symbol] and ask_price[symbol]:
+            cur_price = (bid_price[symbol] + ask_price[symbol]) / 2
+        elif bid_price[symbol]:
+            cur_price = bid_price[symbol]
+        elif ask_price[symbol]:
+            cur_price = ask_price[symbol]
+        if fair_value[symbol]:
+            fair_value[symbol] = past_wt * fair_value[symbol] + cur_wt * cur_price
+        else:
+            fair_value[symbol] = cur_price
+    fair_value["VALE"] = fair_value["VALBZ"]
+    if fair_value["BOND"] and fair_value["GS"] and fair_value["MS"] and fair_value["WFC"]:
+        fair_value["XTF"] = (3 * fair_value["BOND"] + 2 * fair_value["GS"] + 3 * fair_value["MS"] + 2 * fair_value["WFC"]) / 10
+    # take advantage when fair_value and market prices don't match
+    if message["buy"] and fair_value[symbol] and message["buy"][0][0] > 1.0005 * fair_value[symbol]:
+        exchange.send_add_message(symbol=symbol, dir=Dir.SELL, price=message["buy"][0][0], size=20)
+    if message["sell"] and fair_value[symbol] and message["sell"][0][0] < 0.9995 * fair_value[symbol]:
+        exchange.send_add_message(symbol=symbol, dir=Dir.BUY, price=message["sell"][0][0], size=20)
+
 
 def vale_valbz_arbitrage(exchange):
     if bid_price["VALE"] and ask_price["VALBZ"]:
@@ -188,8 +177,6 @@ def vale_valbz_arbitrage(exchange):
         valbz_vale_difference = bid_price["VALBZ"] - ask_price["VALE"]
         if valbz_vale_difference > 10: 
             exchange.send_limit_add_message(symbol="VALE", dir=Dir.BUY, price=ask_price["VALE"])
-
-
 
 
 # ~~~~~============== PROVIDED CODE ==============~~~~~
@@ -211,6 +198,7 @@ class ExchangeConnection:
         self.port = args.port
         self.exchange_socket = self._connect(add_socket_timeout=args.add_socket_timeout)
         self.order_id = 0
+
         self._write_message({"type": "hello", "team": team_name.upper()})
 
     def read_message(self):
@@ -267,12 +255,15 @@ class ExchangeConnection:
             sell_limit = limits[symbol] + positions[symbol] - pending_positions[symbol]["sell"]
             self.send_add_message(symbol, dir, price, sell_limit)
 
-    def send_convert_message(self, order_id: int, symbol: str, dir: Dir, size: int):
+
+    def send_convert_message(self, symbol: str, dir: Dir, size: int):
         """Convert between related symbols"""
+        self.order_id += 1
+        
         self._write_message(
             {
                 "type": "convert",
-                "order_id": order_id,
+                "order_id": self.order_id,
                 "symbol": symbol,
                 "dir": dir,
                 "size": size,
