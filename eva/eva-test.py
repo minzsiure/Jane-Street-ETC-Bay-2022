@@ -2,7 +2,7 @@
 # ~~~~~==============   HOW TO RUN   ==============~~~~~
 # 1) Configure things in CONFIGURATION section
 # 2) Change permissions: chmod +x bot.py
-# 3) Run in loop: while true; do ./bot.py --test prod-like; sleep 1; done
+# 3) Run in loop: while true; do ./eva-test.py --test prod-like; sleep 1; done
 
 import argparse
 from collections import deque
@@ -227,7 +227,7 @@ def parse_arguments():
 if __name__ == "__main__":
     # Check that [team_name] has been updated.
     assert (
-        team_name != ""
+        team_name != "Basking Sharks"
     ), "Please put your team name in the variable [team_name]."
 
     main()
