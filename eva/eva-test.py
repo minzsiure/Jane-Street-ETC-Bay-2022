@@ -174,7 +174,7 @@ def check_and_buy_arbitrage_XTF_amount(positions, category, amount_to_match):
 
 def arbitrage_XTF(market_price):
     conversion_fee = 100
-    BOND, GS, MS, WFC = market_price["BOND"], market_price["GS"], market_price["MS"], market_price["WFC"]
+    BOND, GS, MS, WFC, XLF = market_price["BOND"], market_price["GS"], market_price["MS"], market_price["WFC"], market_price["XLF"]
     # compute how curernt market price add up for 10 xtf
     add_on_market_price_for_XTF = 3*BOND + 2*GS + 3*MS + 2*WFC
     stock_amount = {'BOND':3, 'GS':2, 'MS':3, 'WFC':2}
