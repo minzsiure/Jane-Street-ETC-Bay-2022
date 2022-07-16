@@ -143,9 +143,14 @@ def arbitrage_XTF(market_price):
     # then we should convert all stocks and sell XLF
     # it also means we need to buy all stocks seperately
     if diff > 100: 
-        # convert
-
-        # buy stocks 30 BOND, 20 GS, 30 MS, 20 WFC
+        # TODO This needs to be based on our current position
+        # convert stocks into XLF, BUY receives XLF
+        exchange.send_convert_message(symbol="XLF",dir=Dir.BUY, size=100)
+        
+        # buy stocks 30 BOND, 20 GS, 30 MS, 20 WFC 
+        # TODO This amt needs to be based on our current position
+        for stock, amount in stock_amount.items():
+            exchange.send_add_message(symbol=stock, dir=Dir.BUY, price=XLF, size=amount) 
 
         # sell 100 XLF
         exchange.send_add_message(symbol="XLF", dir=Dir.SELL, price=XLF, size=100) 
@@ -155,16 +160,17 @@ def arbitrage_XTF(market_price):
     # then we should convert XLF and trade seperate stocks
     # it also means we need to buy XLF
     elif diff < -100:
-        # convert 
-        exchange.send_convert_message()
-        # send_convert_message(self, order_id: int, symbol: str, dir: Dir, size: int):
+        # TODO This needs to be based on our current position
+        # convert XLF to stocks, SELL gives out XLF
+        exchange.send_convert_message(symbol="XLF",dir=Dir.SELL, size=100)
 
-        # buy 100 XLF
+        # buy 100 XLF. TODO This needs to be based on our current position
         exchange.send_add_message(symbol="XLF", dir=Dir.BUY, price=XLF, size=100) 
 
-        # sell seperate stocks 30 BOND, 20 GS, 30 MS, 20 WFC
+        # sell seperate stocks 30 BOND, 20 GS, 30 MS, 20 WFC 
+        # TODO This needs to be based on our current position
         for stock, amount in stock_amount.items():
-            exchange.send_add_message(symbol=s, dir=Dir.SELL, price=XLF, size=100) 
+            exchange.send_add_message(symbol=stock, dir=Dir.SELL, price=XLF, size=amount) 
 
 
 
@@ -213,8 +219,9 @@ class ExchangeConnection:
             }
         )
 
-    def send_convert_message(self, order_id: int, symbol: str, dir: Dir, size: int):
+    def send_convert_message(self, symbol: str, dir: Dir, size: int):
         """Convert between related symbols"""
+        self.order_id += 1
         self._write_message(
             {
                 "type": "convert",
