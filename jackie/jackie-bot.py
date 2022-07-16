@@ -17,6 +17,7 @@ import json
 # Replace "REPLACEME" with your team name!
 team_name = "BASKINGSHARKS"
 all_orders = {} 
+convert_orders = {}
 pending_positions = {}
 positions = {}
 limits = {
@@ -121,24 +122,33 @@ def main():
             symbol = message["symbol"]
             dir = message["dir"]
             size = message["size"]
+            message_type = all_orders[message["order_id"]]["type"]
 
             if dir == Dir.BUY:
                 positions[symbol] += size
                 pending_positions[symbol]["buy"] -= size
 
-                if symbol == "BOND":
-                    exchange.send_limit_add_message(symbol="BOND", dir=Dir.SELL, price=1001)
-                if symbol == "VALE" and bid_price["VALBZ"]:
-                    exchange.send_add_message(symbol="VALBZ", dir=Dir.SELL, price=bid_price["VALBZ"], size=size)
-                if symbol == "VALBZ" and bid_price["VALE"]:
-                    exchange.send_add_message(symbol="VALE", dir=Dir.SELL, price=bid_price["VALE"], size=size)
-
+                if message_type == "convert":
+                    if symbol == "VALE":
+                        exchange.send_limit_add_message(symbol="VALE", dir=Dir.SELL, price=bid_price["VALE"])
+                else:
+                    if symbol == "BOND":
+                        exchange.send_limit_add_message(symbol="BOND", dir=Dir.SELL, price=1001)
+                    if symbol == "VALE":
+                        exchange.send_limit_convert_message(symbol="VALE", dir=Dir.SELL, size=size)
+                    if symbol == "VALBZ":
+                        exchange.send_limit_convert_message(symbol="VALE", dir=Dir.BUY, size=size)
+                
             else:
                 positions[symbol] -= size
                 pending_positions[symbol]["sell"] -= size
 
-                if symbol == "BOND":
-                    exchange.send_limit_add_message(symbol="BOND", dir=Dir.BUY, price=999)
+                if message_type == "convert":
+                    if symbol == "VALE":
+                        exchange.send_limit_add_message(symbol="VALBZ", dir=Dir.SELL, price=bid_price["VALBZ"])
+                else:
+                    if symbol == "BOND":
+                        exchange.send_limit_add_message(symbol="BOND", dir=Dir.BUY, price=999)
 
         elif message["type"] == "book":
             update_market_price(message)
@@ -255,6 +265,7 @@ class ExchangeConnection:
     def send_convert_message(self, symbol: str, dir: Dir, size: int):
         """Convert between related symbols"""
         self.order_id += 1
+
         self._write_message(
             {
                 "type": "convert",
@@ -270,6 +281,22 @@ class ExchangeConnection:
             "dir": dir,
             "size": size
         }
+
+        if dir == Dir.BUY and symbol == "VALE":
+            pending_positions["VALE"]["buy"] += size 
+        if dir == Dir.SELL and symbol == "VALE":
+            pending_positions["VALBZ"]["buy"] += size 
+    
+    def send_limit_convert_message(self, symbol: str, dir: Dir, size: int):
+        if symbol == "VALE":
+            if dir == Dir.BUY:
+                limit = limits["VALE"] - positions["VALE"] - pending_positions["VALE"]["buy"]
+                size = max(size, limit)
+            else:
+                limit = limits["VALBZ"] - positions["VALBZ"] - pending_positions["VALBZ"]["buy"]
+                size = max(size, limit)
+
+            self.send_convert_message(symbol, dir, size)
 
     def send_cancel_message(self, order_id: int):
         """Cancel an existing order"""
