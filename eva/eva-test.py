@@ -2,9 +2,7 @@
 # ~~~~~==============   HOW TO RUN   ==============~~~~~
 # 1) Configure things in CONFIGURATION section
 # 2) Change permissions: chmod +x bot.py
-# 3) Run in loop: 
-# while true; do ./bot.py --test prod-like; sleep 1; done
-# while true; do ./jackie-bot.py --test prod-like; sleep 1; done
+# 3) Run in loop: while true; do ./bot.py --test prod-like; sleep 1; done
 
 import argparse
 from collections import deque
@@ -27,6 +25,7 @@ team_name = "BASKINGSHARKS"
 # price, and it prints the current prices for VALE every second. The sample
 # code is intended to be a working example, but it needs some improvement
 # before it will start making good trades!
+
 
 def main():
     args = parse_arguments()
@@ -61,8 +60,16 @@ def main():
     # Set up some variables to track the bid and ask price of a symbol. Right
     # now this doesn't track much information, but it's enough to get a sense
     # of the VALE market.
-    vale_bid_price, vale_ask_price = None, None
-    vale_last_print_time = time.time()
+    symbols = ["BOND", "VALBZ", "VALE", "GS", "MS", "WFC", "XLS"]
+    limits = {"BOND":100, "VALBZ":10, "VALE":10, "GS":100, "MS":100, "WFC":100, "XLS":100}
+    bid_price = {}
+    ask_price = {}
+    market_price = {}
+    for symbol in symbols:
+        bid_price[symbol] = None
+        ask_price[symbol] = None
+        market_price[symbol] = None
+    market_price["BOND"] = 1000
 
     # Here is the main loop of the program. It will continue to read and
     # process messages in a loop until a "close" message is received. You
@@ -102,31 +109,63 @@ def main():
                 if symbol == "BOND":
                     exchange.send_add_message(symbol="BOND", dir=Dir.BUY, price=999, size=size)
             else:
+                positions[symbol] -= size
                 if symbol == "BOND":
                     exchange.send_add_message(symbol="BOND", dir=Dir.SELL, price=1001, size=size)
-                positions[symbol] -= size
-
         elif message["type"] == "book":
+            symbol = message["symbol"]
+            if message["buy"]:
+                bid_price[symbol] = message["buy"][0][0]
+            if message["sell"]:
+                ask_price[symbol] = message["sell"][0][0]
+            if symbol in {"VALBZ", "GS", "MS", "WFC"}:
+                if bid_price[symbol] and ask_price[symbol]:
+                    market_price[symbol] = (bid_price[symbol] + ask_price[symbol]) / 2
+                elif bid_price[symbol]:
+                    market_price[symbol] = bid_price[symbol]
+                elif ask_price[symbol]:
+                    market_price[symbol] = ask_price[symbol]
+            market_price["VALE"] = market_price["VALBZ"]
+            if market_price["BOND"] and market_price["GS"] and market_price["MS"] and market_price["WFC"]:
+                market_price["XTF"] = (3 * market_price["BOND"] + 2 * market_price["GS"] + 3 * market_price["MS"] + 2 * market_price["WFC"]) / 10
 
-            if message["symbol"] == "VALE":
 
-                def best_price(side):
-                    if message[side]:
-                        return message[side][0][0]
+def arbitrage_XTF(market_price):
+    conversion_fee = 100
+    XLF = market_price["XLF"]
+    BOND, GS, MS, WFC = market_price["BOND"], market_price["GS"], market_price["MS"], market_price["WFC"]
+    # compute how curernt market price add up for 10 xtf
+    add_on_market_price_for_XTF = 3*BOND + 2*GS + 3*MS + 2*WFC
+    stock_amount = {'BOND':30, 'GS':20, 'MS':30, 'WFC':20}
+    diff = XLF - add_on_market_price_for_XTF
+    
+    # if current XLF price is greater than all stocks adding up
+    # then we should convert all stocks and sell XLF
+    # it also means we need to buy all stocks seperately
+    if diff > 100: 
+        # convert
 
-                vale_bid_price = best_price("buy")
-                vale_ask_price = best_price("sell")
+        # buy stocks 30 BOND, 20 GS, 30 MS, 20 WFC
 
-                now = time.time()
+        # sell 100 XLF
+        exchange.send_add_message(symbol="XLF", dir=Dir.SELL, price=XLF, size=100) 
 
-                if now > vale_last_print_time + 1:
-                    vale_last_print_time = now
-                    print(
-                        {
-                            "vale_bid_price": vale_bid_price,
-                            "vale_ask_price": vale_ask_price,
-                        }
-                    )
+    # if all stocks adding up is greater than current XLF market price, 
+    # it means we have more profits trading seperately
+    # then we should convert XLF and trade seperate stocks
+    # it also means we need to buy XLF
+    elif diff < -100:
+        # convert 
+        exchange.send_convert_message()
+        # send_convert_message(self, order_id: int, symbol: str, dir: Dir, size: int):
+
+        # buy 100 XLF
+        exchange.send_add_message(symbol="XLF", dir=Dir.BUY, price=XLF, size=100) 
+
+        # sell seperate stocks 30 BOND, 20 GS, 30 MS, 20 WFC
+        for stock, amount in stock_amount.items():
+            exchange.send_add_message(symbol=s, dir=Dir.SELL, price=XLF, size=100) 
+
 
 
 # ~~~~~============== PROVIDED CODE ==============~~~~~
