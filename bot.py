@@ -52,6 +52,7 @@ def main():
     # now this doesn't track much information, but it's enough to get a sense
     # of the VALE market.
     symbols = ["BOND", "VALBZ", "VALE", "GS", "MS", "WFC", "XLS"]
+    limits = {"BOND":100, "VALBZ":10, "VALE":10, "GS":100, "MS":100, "WFC":100, "XLS":100}
     bid_price = {}
     ask_price = {}
     market_price = {}
