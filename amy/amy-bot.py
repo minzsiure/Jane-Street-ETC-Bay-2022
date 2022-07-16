@@ -141,7 +141,7 @@ def main():
             else:
                 positions[symbol] -= size
                 exchange.send_add_message(symbol=symbol, dir=Dir.SELL, price=round(market_price[symbol] + 1), size=size)
-                print("ORDER FOR SELL " + str(size) + " SHARES OF " + symbol + " AT " + str(round(market_price[symbol] - 1)1))
+                print("ORDER FOR SELL " + str(size) + " SHARES OF " + symbol + " AT " + str(round(market_price[symbol] - 1)))
         elif message["type"] == "book":
             update_market_price(message)
 
