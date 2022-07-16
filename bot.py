@@ -51,14 +51,15 @@ def main():
     # Set up some variables to track the bid and ask price of a symbol. Right
     # now this doesn't track much information, but it's enough to get a sense
     # of the VALE market.
-    symbols = ["BOND", "VALBZ", "VALE", "GS", "MS", "WLC", "XLS"]
+    symbols = ["BOND", "VALBZ", "VALE", "GS", "MS", "WFC", "XLS"]
     bid_price = {}
     ask_price = {}
     market_price = {}
-    market_price["BOND"] = 1000
     for symbol in symbols:
         bid_price[symbol] = None
         ask_price[symbol] = None
+        market_price[symbol] = None
+    market_price["BOND"] = 1000
 
     # Here is the main loop of the program. It will continue to read and
     # process messages in a loop until a "close" message is received. You
@@ -96,7 +97,7 @@ def main():
                 bid_price[symbol] = message["buy"][0][0]
             if message["sell"]:
                 ask_price[symbol] = message["sell"][0][0]
-            if symbol in {"VALBZ", "GS", "MS", "WLC"}:
+            if symbol in {"VALBZ", "GS", "MS", "WFC"}:
                 if bid_price[symbol] and ask_price[symbol]:
                     market_price[symbol] = (bid_price[symbol] + ask_price[symbol]) / 2
                 elif bid_price[symbol]:
