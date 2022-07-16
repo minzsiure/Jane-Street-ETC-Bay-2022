@@ -121,13 +121,13 @@ def main():
                 pending_positions[symbol]["buy"] -= size
 
                 if symbol == "BOND":
-                    exchange.send_limit_add_message(symbol="BOND", dir=Dir.BUY, price=999)
+                    exchange.send_limit_add_message(symbol="BOND", dir=Dir.SELL, price=1001)
             else:
                 positions[symbol] -= size
                 pending_positions[symbol]["sell"] -= size
 
                 if symbol == "BOND":
-                    exchange.send_limit_add_message(symbol="BOND", dir=Dir.SELL, price=1001)
+                    exchange.send_limit_add_message(symbol="BOND", dir=Dir.BUY, price=999)
 
         elif message["type"] == "book":
 
