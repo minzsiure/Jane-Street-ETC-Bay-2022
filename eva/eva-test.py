@@ -184,6 +184,7 @@ def check_and_buy_arbitrage_XLF_amount(exchange, positions, category, amount_to_
     elif category == "components":
         current_pos = {"BOND":positions["BOND"], "GS":positions["GS"], "MS":positions["MS"], "WFC":positions["WFC"]}
         for comp in current_pos.keys():
+            print("trying to buy stocks for conversion, condition:", positions[comp] - amount_to_match[comp] < 0 and ask_price[comp] <= 0.95*fair_value["XLF"])
             if positions[comp] - amount_to_match[comp] < 0 and ask_price[comp] <= 0.95*fair_value["XLF"]:
                 exchange.send_add_message(symbol=comp, dir=Dir.BUY, price=round(ask_price[comp]), size=amount_to_match[comp]-current_pos[comp]) 
                 print("checked. not enough", comp, "buying", amount_to_match[comp]-current_pos[comp], "at", fair_value[comp])
@@ -231,6 +232,7 @@ def arbitrage_XLF(exchange, fair_value):
     elif diff < -100:
         # convert XLF to stocks, SELL gives out XLF and gives us components
         if positions["BOND"] < 97 and positions["GS"] < 98 and positions["MS"] < 97 and positions["WFC"] < 98:
+            print("hitting here 1")
             # TODO if we don't have enough XLF, buy XLF such that we have 10
             check_and_buy_arbitrage_XLF_amount(exchange,positions,"XLF",amount_to_match,fair_value)
 
