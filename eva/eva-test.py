@@ -151,9 +151,9 @@ def main():
             # Always run arbitrage buying engine. 
             # vale_valbz_arbitrage(exchange=exchange)
             print(fair_value)
-            # if fair_value["BOND"] and fair_value["GS"] and fair_value["MS"] and fair_value["WFC"] and fair_value["XLF"]:
-            #     print("*******hitting xlf arbitrage***********")
-            #     arbitrage_XLF(exchange, fair_value)
+            if fair_value["BOND"] and fair_value["GS"] and fair_value["MS"] and fair_value["WFC"] and fair_value["XLF"]:
+                print("*******hitting xlf arbitrage***********")
+                arbitrage_XLF(exchange, fair_value)
 
 
 def update_fair_value(exchange, message):
@@ -180,6 +180,7 @@ def update_fair_value(exchange, message):
             fair_value[symbol] = cur_price
 
     fair_value["VALE"] = fair_value["VALBZ"]
+    fair_value["BOND"] = 1000
     if fair_value["BOND"] and fair_value["GS"] and fair_value["MS"] and fair_value["WFC"]:
         fair_value["XLF"] = (3 * fair_value["BOND"] + 2 * fair_value["GS"] + 3 * fair_value["MS"] + 2 * fair_value["WFC"]) / 10
     
@@ -477,3 +478,4 @@ if __name__ == "__main__":
     ), "Please put your team name in the variable [team_name]."
 
     main()
+
