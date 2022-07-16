@@ -174,7 +174,7 @@ def main():
                 if symbol == "BOND":
                     exchange.send_limit_add_message(symbol="BOND", dir=Dir.BUY, price=999)
         elif message["type"] == "book":
-            update_fair_value(message)
+            #update_fair_value(message)
             if symbol == "VALE" or symbol == "VALBZ":
                 vale_valbz_arbitrage(exchange=exchange)
 
