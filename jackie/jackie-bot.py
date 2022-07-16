@@ -165,6 +165,7 @@ def update_market_price(message):
     market_price[symbol] = current_price
 
 def vale_valbz_arbitrage(exchange):
+    print("RUNNING V ARBITRAGE")
     if bid_price["VALE"] and ask_price["VALBZ"]:
         vale_valbz_difference = bid_price["VALE"] - ask_price["VALBZ"]
         if vale_valbz_difference > 10: 

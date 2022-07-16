@@ -135,8 +135,7 @@ def main():
             update_market_price(message)
 
             # Always run arbitrage buying engine. 
-            if symbol == "VALE" or symbol == "VALBZ":
-                vale_valbz_arbitrage(exchange=exchange)
+            vale_valbz_arbitrage(exchange=exchange)
 
 
 def update_market_price(message):
