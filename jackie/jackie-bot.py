@@ -27,7 +27,6 @@ team_name = "BASKINGSHARKS"
 # price, and it prints the current prices for VALE every second. The sample
 # code is intended to be a working example, but it needs some improvement
 # before it will start making good trades!
-ORDER_ID = 1
 
 def main():
     args = parse_arguments()
@@ -148,6 +147,7 @@ class ExchangeConnection:
         self.exchange_hostname = args.exchange_hostname
         self.port = args.port
         self.exchange_socket = self._connect(add_socket_timeout=args.add_socket_timeout)
+        self.order_id = 0
 
         self._write_message({"type": "hello", "team": team_name.upper()})
 
@@ -162,11 +162,11 @@ class ExchangeConnection:
         self, symbol: str, dir: Dir, price: int, size: int
     ):
         """Add a new order"""
-        ORDER_ID += 1
+        self.order_id += 1
         self._write_message(
             {
                 "type": "add",
-                "order_id": ORDER_ID,
+                "order_id": self.order_id,
                 "symbol": symbol,
                 "dir": dir,
                 "price": price,
