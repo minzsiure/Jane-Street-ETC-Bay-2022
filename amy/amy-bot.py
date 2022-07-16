@@ -46,6 +46,15 @@ ask_price = {}
 
 def main():
     args = parse_arguments()
+    symbols = ["BOND", "VALBZ", "VALE", "GS", "MS", "WFC", "XLF"]
+    for symbol in symbols:
+        positions[symbol] = 0
+        pending_positions[symbol] = {}
+        pending_positions[symbol]["buy"] = 0
+        pending_positions[symbol]["sell"] = 0
+        fair_value[symbol] = None
+        bid_price[symbol] = None
+        ask_price[symbol] = None
 
     exchange = ExchangeConnection(args=args)
 
@@ -74,7 +83,7 @@ def main():
     # of the VALE market.'
     exchange.send_add_message(symbol="BOND", dir=Dir.BUY, price=999, size=100)
     exchange.send_add_message(symbol="BOND", dir=Dir.SELL, price=1001, size=100)
-    symbols = ["BOND", "VALBZ", "VALE", "GS", "MS", "WFC", "XLF"]
+    
     for symbol in symbols:
         positions[symbol] = 0
         pending_positions[symbol] = {}
@@ -154,10 +163,10 @@ def main():
 
                 if symbol == "BOND":
                     exchange.send_limit_add_message(symbol="BOND", dir=Dir.SELL, price=1001)
-                if symbol == "VALE" and bid_price["VALBZ"]:
-                    exchange.send_limit_add_message(symbol="VALBZ", dir=Dir.SELL, price=bid_price["VALBZ"])
-                if symbol == "VALBZ" and bid_price["VALE"]:
-                    exchange.send_limit_add_message(symbol="VALE", dir=Dir.SELL, price=bid_price["VALE"])
+                #if symbol == "VALE" and bid_price["VALBZ"]:
+                #    exchange.send_limit_add_message(symbol="VALBZ", dir=Dir.SELL, price=bid_price["VALBZ"])
+                #if symbol == "VALBZ" and bid_price["VALE"]:
+                #    exchange.send_limit_add_message(symbol="VALE", dir=Dir.SELL, price=bid_price["VALE"])
             else:
                 positions[symbol] -= size
                 pending_positions[symbol]["sell"] -= size
@@ -166,8 +175,8 @@ def main():
                     exchange.send_limit_add_message(symbol="BOND", dir=Dir.BUY, price=999)
         elif message["type"] == "book":
             update_fair_value(message)
-            if symbol == "VALE" or symbol == "VALBZ":
-                vale_valbz_arbitrage(exchange=exchange)
+            #if symbol == "VALE" or symbol == "VALBZ":
+            #    vale_valbz_arbitrage(exchange=exchange)
 
 def vale_valbz_arbitrage(exchange):
     if bid_price["VALE"] and ask_price["VALBZ"]:
@@ -215,17 +224,39 @@ class ExchangeConnection:
         self, symbol: str, dir: Dir, price: int, size: int
     ):
         """Add a new order"""
-        self.order_id += 1
-        self._write_message(
-            {
+        buy_limit = limits[symbol] - positions[symbol] - pending_positions[symbol]["buy"]
+        sell_limit = limits[symbol] + positions[symbol] - pending_positions[symbol]["sell"]
+
+        if dir == Dir.BUY and size > buy_limit:
+            print("!!!BUYING POSITION LIMIT EXCEEDED!!!", positions[symbol], size)
+        elif dir == Dir.SELL and size > sell_limit: 
+            print("!!!SELLING POSITION LIMIT EXCEEDED!!!", positions[symbol], size)
+        else:
+            self.order_id += 1
+
+            self._write_message(
+                {
+                    "type": "add",
+                    "order_id": self.order_id,
+                    "symbol": symbol,
+                    "dir": dir,
+                    "price": price,
+                    "size": size,
+                }
+            )
+
+            all_orders[self.order_id] = {
                 "type": "add",
-                "order_id": self.order_id,
                 "symbol": symbol,
                 "dir": dir,
                 "price": price,
-                "size": size,
+                "size": size
             }
-        )
+
+            if dir == Dir.BUY:
+                pending_positions[symbol]["buy"] += size
+            else: 
+                pending_positions[symbol]["sell"] += size
 
     def send_limit_add_message(self, symbol:str, dir: Dir, price: int):
         """Send an order with maximum size possible based on existing limits and current orders."""
