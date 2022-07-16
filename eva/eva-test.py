@@ -14,6 +14,18 @@ import json
 # ~~~~~============== CONFIGURATION  ==============~~~~~
 # Replace "REPLACEME" with your team name!
 team_name = "BASKINGSHARKS"
+all_orders = {} 
+positions = {}
+pending_positions = {}
+limits = {
+    "BOND": 100, 
+    "VALBZ": 10, 
+    "VALE": 10, 
+    "GS": 100, 
+    "MS": 100, 
+    "WFC": 100, 
+    "XLS": 100
+}
 
 # ~~~~~============== MAIN LOOP ==============~~~~~
 
@@ -30,12 +42,17 @@ team_name = "BASKINGSHARKS"
 def main():
     args = parse_arguments()
 
-    exchange = ExchangeConnection(args=args)
-
     symbols = ["BOND", "VALE", "VALBZ", "GS", "MS", "WFC", "XLF"]
-    positions = {}
+
     for symbol in symbols:
         positions[symbol] = 0
+
+    for symbol in symbols: 
+        pending_positions[symbol] = {}
+        pending_positions[symbol]["buy"] = 0
+        pending_positions[symbol]["sell"] = 0
+
+    exchange = ExchangeConnection(args=args)
 
     # Store and print the "hello" message received from the exchange. This
     # contains useful information about your positions. Normally you start with
@@ -101,17 +118,24 @@ def main():
             print(message)
         elif message["type"] == "fill":
             print(message)
+
             symbol = message["symbol"]
             dir = message["dir"]
             size = message["size"]
+
             if dir == Dir.BUY:
                 positions[symbol] += size
+                pending_positions[symbol]["buy"] -= size
+
                 if symbol == "BOND":
-                    exchange.send_add_message(symbol="BOND", dir=Dir.BUY, price=999, size=size)
+                    exchange.send_limit_add_message(symbol="BOND", dir=Dir.SELL, price=1001)
             else:
                 positions[symbol] -= size
+                pending_positions[symbol]["sell"] -= size
+
                 if symbol == "BOND":
-                    exchange.send_add_message(symbol="BOND", dir=Dir.SELL, price=1001, size=size)
+                    exchange.send_limit_add_message(symbol="BOND", dir=Dir.BUY, price=999)
+
         elif message["type"] == "book":
             symbol = message["symbol"]
             if message["buy"]:
@@ -130,48 +154,69 @@ def main():
                 market_price["XTF"] = (3 * market_price["BOND"] + 2 * market_price["GS"] + 3 * market_price["MS"] + 2 * market_price["WFC"]) / 10
 
 
+def check_and_buy_arbitrage_XTF_amount(positions, category, amount_to_match):
+    if category == "XTF":
+        XTF_pos = positions["XTF"]
+        # not enough, buy more xtf
+        if XTF_pos - amount_to_match["XTF"] < 0:
+            exchange.send_add_message(symbol="XLF", dir=Dir.BUY, price=market_price["XLF"], size=amount_to_match["XTF"]-XTF_pos) 
+
+    elif category == "components":
+        current_pos = {"BOND":positions["BOND"], "GS":positions["GS"], "MS":positions["MS"], "WFC":positions["WFC"]}
+        amount_pending = {'BOND':0, 'GS':0, 'MS':0, 'WFC':0}
+        for comp in amount_pending.keys():
+            if positions[comp] - amount_to_match[comp] < 0:
+                exchange.send_add_message(symbol=comp, dir=Dir.BUY, price=market_price[comp], size=amount_to_match[comp]-current_pos[comp]) 
+
+
 def arbitrage_XTF(market_price):
     conversion_fee = 100
-    XLF = market_price["XLF"]
     BOND, GS, MS, WFC = market_price["BOND"], market_price["GS"], market_price["MS"], market_price["WFC"]
     # compute how curernt market price add up for 10 xtf
     add_on_market_price_for_XTF = 3*BOND + 2*GS + 3*MS + 2*WFC
-    stock_amount = {'BOND':30, 'GS':20, 'MS':30, 'WFC':20}
+    stock_amount = {'BOND':3, 'GS':2, 'MS':3, 'WFC':2}
+    amount_to_match = {'BOND':3, 'GS':2, 'MS':3, 'WFC':2, 'XFC':10}
     diff = XLF - add_on_market_price_for_XTF
     
     # if current XLF price is greater than all stocks adding up
     # then we should convert all stocks and sell XLF
     # it also means we need to buy all stocks seperately
     if diff > 100: 
-        # TODO This needs to be based on our current position
-        # convert stocks into XLF, BUY receives XLF
-        exchange.send_convert_message(symbol="XLF",dir=Dir.BUY, size=100)
+        # sell all XLF we have
+        exchange.send_add_message(symbol="XLF", dir=Dir.SELL, price=market_price["XLF"], size=positions["XLF"]) 
         
-        # buy stocks 30 BOND, 20 GS, 30 MS, 20 WFC 
+        # if we don't have enough stocks, buy them first so we have 3,2,3,2
+        check_and_buy_arbitrage_XTF_amount(positions,"components",amount_to_match)
+
+        # convert stocks into XLF, BUY receives XLF
+        exchange.send_convert_message(symbol="XLF",dir=Dir.BUY, size=10)
+
+        # sell all XLF we have
+        exchange.send_add_message(symbol="XLF", dir=Dir.SELL, price=market_price["XLF"], size=10) 
+        
+        # buy stocks 3 BOND, 2 GS, 3 MS, 2 WFC 
         # TODO This amt needs to be based on our current position
         for stock, amount in stock_amount.items():
-            exchange.send_add_message(symbol=stock, dir=Dir.BUY, price=XLF, size=amount) 
-
-        # sell 100 XLF
-        exchange.send_add_message(symbol="XLF", dir=Dir.SELL, price=XLF, size=100) 
+            exchange.send_add_message(symbol=stock, dir=Dir.BUY, price=market_price[stock], size=amount) 
 
     # if all stocks adding up is greater than current XLF market price, 
     # it means we have more profits trading seperately
     # then we should convert XLF and trade seperate stocks
     # it also means we need to buy XLF
     elif diff < -100:
-        # TODO This needs to be based on our current position
-        # convert XLF to stocks, SELL gives out XLF
-        exchange.send_convert_message(symbol="XLF",dir=Dir.SELL, size=100)
+        # TODO if we don't have enough XLF, buy XLF such that we have 10
+        check_and_buy_arbitrage_XTF_amount(positions,"XLF",amount_to_match)
+        
+        # convert XLF to stocks, SELL gives out XLF and gives us components
+        exchange.send_convert_message(symbol="XLF",dir=Dir.SELL, size=10)
 
-        # buy 100 XLF. TODO This needs to be based on our current position
-        exchange.send_add_message(symbol="XLF", dir=Dir.BUY, price=XLF, size=100) 
-
-        # sell seperate stocks 30 BOND, 20 GS, 30 MS, 20 WFC 
+        # sell seperate stocks 3 BOND, 2 GS, 3 MS, 2 WFC 
         # TODO This needs to be based on our current position
         for stock, amount in stock_amount.items():
-            exchange.send_add_message(symbol=stock, dir=Dir.SELL, price=XLF, size=amount) 
+            exchange.send_add_message(symbol=stock, dir=Dir.SELL, price=market_price[stock], size=amount) 
 
+        # Buy up to 10 XLF
+        exchange.send_add_message(symbol="XLF", dir=Dir.BUY, price=market_price["XLF"], size=10) 
 
 
 # ~~~~~============== PROVIDED CODE ==============~~~~~
@@ -207,25 +252,58 @@ class ExchangeConnection:
         self, symbol: str, dir: Dir, price: int, size: int
     ):
         """Add a new order"""
-        self.order_id += 1
-        self._write_message(
-            {
+        buy_limit = limits[symbol] - positions[symbol] - pending_positions[symbol]["buy"]
+        sell_limit = limits[symbol] + positions[symbol] - pending_positions[symbol]["sell"]
+
+        if dir == Dir.BUY and size > buy_limit:
+            print("!!!BUYING POSITION LIMIT EXCEEDED!!!", positions[symbol], size)
+        elif dir == Dir.SELL and size > sell_limit: 
+            print("!!!SELLING POSITION LIMIT EXCEEDED!!!", positions[symbol], size)
+        else:
+            self.order_id += 1
+
+            self._write_message(
+                {
+                    "type": "add",
+                    "order_id": self.order_id,
+                    "symbol": symbol,
+                    "dir": dir,
+                    "price": price,
+                    "size": size,
+                }
+            )
+
+            all_orders[self.order_id] = {
                 "type": "add",
-                "order_id": self.order_id,
                 "symbol": symbol,
                 "dir": dir,
                 "price": price,
-                "size": size,
+                "size": size
             }
-        )
+
+            if dir == Dir.BUY:
+                pending_positions[symbol]["buy"] += size
+            else: 
+                pending_positions[symbol]["sell"] += size
+
+    def send_limit_add_message(self, symbol:str, dir: Dir, price: int):
+        """Send an order with maximum size possible based on existing limits and current orders."""
+        if dir == Dir.BUY:
+            buy_limit = limits[symbol] - positions[symbol] - pending_positions[symbol]["buy"]
+            self.send_add_message(symbol, dir, price, buy_limit)
+        else: 
+            sell_limit = limits[symbol] + positions[symbol] - pending_positions[symbol]["sell"]
+            self.send_add_message(symbol, dir, price, sell_limit)
+
 
     def send_convert_message(self, symbol: str, dir: Dir, size: int):
         """Convert between related symbols"""
         self.order_id += 1
+        
         self._write_message(
             {
                 "type": "convert",
-                "order_id": order_id,
+                "order_id": self.order_id,
                 "symbol": symbol,
                 "dir": dir,
                 "size": size,
