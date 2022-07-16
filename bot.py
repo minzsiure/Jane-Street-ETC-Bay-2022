@@ -133,7 +133,6 @@ def main():
 
         elif message["type"] == "book":
             update_fair_value(exchange, message)
-
             # Always run arbitrage buying engine. 
             # vale_valbz_arbitrage(exchange=exchange)
 
