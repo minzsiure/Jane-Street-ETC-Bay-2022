@@ -78,8 +78,8 @@ def main():
     # Send an order for BOND at a good price, but it is low enough that it is
     # unlikely it will be traded against. Maybe there is a better price to
     # pick? Also, you will need to send more orders over time.
-    exchange.send_add_message(symbol="BOND", dir=Dir.BUY, price=999, size=100)
-    exchange.send_add_message(symbol="BOND", dir=Dir.SELL, price=1001, size=100)
+    exchange.send_limit_add_message(symbol="BOND", dir=Dir.BUY, price=999)
+    exchange.send_limit_add_message(symbol="BOND", dir=Dir.SELL, price=1001)
 
     # Set up some variables to track the bid and ask price of a symbol. Right
     # now this doesn't track much information, but it's enough to get a sense
@@ -144,8 +144,7 @@ def main():
             update_market_price(message)
 
             # Always run arbitrage buying engine. 
-            if symbol == "VALE" or symbol == "VALBZ":
-                vale_valbz_arbitrage(exchange=exchange)
+            vale_valbz_arbitrage(exchange=exchange)
 
 
 def update_market_price(message):
@@ -163,10 +162,7 @@ def update_market_price(message):
     elif message["sell"]:
         current_price = ask_price[symbol]
     
-    if market_price[symbol]:
-        market_price[symbol] = past_weight * market_price[symbol] + current_weight * current_price
-    else:
-        market_price[symbol] = current_price
+    market_price[symbol] = current_price
 
 def vale_valbz_arbitrage(exchange):
     if bid_price["VALE"] and ask_price["VALBZ"]:
