@@ -132,7 +132,7 @@ def main():
 
                 if message_type == "convert":
                     if symbol == "VALE":
-                        exchange.send_limit_add_message(symbol="VALE", dir=Dir.SELL, price=bid_price["VALE"] - 1)
+                        exchange.send_limit_add_message(symbol="VALE", dir=Dir.SELL, price=bid_price["VALE"] - 5)
                 else:
                     if symbol == "BOND":
                         exchange.send_limit_add_message(symbol="BOND", dir=Dir.SELL, price=1001)
@@ -147,7 +147,7 @@ def main():
 
                 if message_type == "convert":
                     if symbol == "VALE":
-                        exchange.send_limit_add_message(symbol="VALBZ", dir=Dir.SELL, price=bid_price["VALBZ"] - 1)
+                        exchange.send_limit_add_message(symbol="VALBZ", dir=Dir.SELL, price=bid_price["VALBZ"] - 5)
                 else:
                     if symbol == "BOND":
                         exchange.send_limit_add_message(symbol="BOND", dir=Dir.BUY, price=999)
@@ -177,13 +177,13 @@ def update_market_price(message):
     market_price[symbol] = current_price
 
 def vale_valbz_arbitrage(exchange):
-    # if bid_price["VALE"] and ask_price["VALBZ"]:
-    #     vale_valbz_difference = bid_price["VALE"] - ask_price["VALBZ"]
-    #     if vale_valbz_difference > 10: 
-    #         exchange.send_limit_add_message(symbol="VALBZ", dir=Dir.BUY, price=ask_price["VALBZ"])
+    if bid_price["VALE"] and ask_price["VALBZ"]:
+        vale_valbz_difference = bid_price["VALE"] - ask_price["VALBZ"]
+        if vale_valbz_difference > 20 + bid_price["VALE"] * 0.01: 
+            exchange.send_limit_add_message(symbol="VALBZ", dir=Dir.BUY, price=ask_price["VALBZ"])
     if bid_price["VALBZ"] and ask_price["VALE"]:
         valbz_vale_difference = bid_price["VALBZ"] - ask_price["VALE"]
-        if valbz_vale_difference > 20: 
+        if valbz_vale_difference > 20 + bid_price["VALBZ"] * 0.01: 
             exchange.send_limit_add_message(symbol="VALE", dir=Dir.BUY, price=ask_price["VALE"])
 
 # ~~~~~============== PROVIDED CODE ==============~~~~~
