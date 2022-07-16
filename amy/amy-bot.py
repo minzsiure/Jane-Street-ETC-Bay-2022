@@ -130,9 +130,9 @@ def main():
             if dir == Dir.BUY:
                 positions[symbol] += size
                 exchange.send_add_message(symbol=symbol, dir=Dir.BUY, price=market_price[symbol] - 1, size=size)
-                exchange.send_add_message(symbol=symbol, dir=Dir.SELL, price=market_price[symbol] + 1, size=size)
             else:
                 positions[symbol] -= size
+                exchange.send_add_message(symbol=symbol, dir=Dir.SELL, price=market_price[symbol] + 1, size=size)
         elif message["type"] == "book":
             update_market_price(message)
 
