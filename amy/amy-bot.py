@@ -17,6 +17,7 @@ team_name = "BASKINGSHARKS"
 all_orders = {} 
 positions = {}
 pending_positions = {}
+pending_orders = {}
 limits = {
     "BOND": 100, 
     "VALBZ": 10, 
@@ -52,6 +53,9 @@ def main():
         pending_positions[symbol] = {}
         pending_positions[symbol]["buy"] = 0
         pending_positions[symbol]["sell"] = 0
+        pending_orders[symbol] = {}
+        pending_orders[symbol]["buy"] = []
+        pending_orders[symbol]["sell"] = []
         fair_value[symbol] = None
         bid_price[symbol] = None
         ask_price[symbol] = None
@@ -117,8 +121,8 @@ def main():
                 positions[symbol] += size
                 pending_positions[symbol]["buy"] -= size
 
-                #if symbol == "BOND":
-                #    exchange.send_limit_add_message(symbol="BOND", dir=Dir.SELL, price=1001)
+                if symbol == "BOND":
+                    exchange.send_limit_add_message(symbol="BOND", dir=Dir.SELL, price=1001)
                 # if symbol == "VALE" and bid_price["VALBZ"]:
                 #     exchange.send_limit_add_message(symbol="VALBZ", dir=Dir.SELL, price=bid_price["VALBZ"])
                 # if symbol == "VALBZ" and bid_price["VALE"]:
@@ -137,6 +141,8 @@ def main():
             # Always run arbitrage buying engine. 
             # vale_valbz_arbitrage(exchange=exchange)
 
+def cancel_orders(exchange, message):
+    pass
 
 def update_fair_value(exchange, message):
     past_wt = 0.8
@@ -161,10 +167,10 @@ def update_fair_value(exchange, message):
     if fair_value["BOND"] and fair_value["GS"] and fair_value["MS"] and fair_value["WFC"]:
         fair_value["XTF"] = (3 * fair_value["BOND"] + 2 * fair_value["GS"] + 3 * fair_value["MS"] + 2 * fair_value["WFC"]) / 10
     # take advantage when fair_value and market prices don't match
-    if message["buy"] and fair_value[symbol] and message["buy"][0][0] > 1.0008 * fair_value[symbol]:
-        exchange.send_add_message(symbol=symbol, dir=Dir.SELL, price=message["buy"][0][0], size=20)
-    if message["sell"] and fair_value[symbol] and message["sell"][0][0] < 0.9992 * fair_value[symbol]:
-        exchange.send_add_message(symbol=symbol, dir=Dir.BUY, price=message["sell"][0][0], size=20)
+    if message["buy"] and fair_value[symbol] and message["buy"][0][0] > 1.0005 * fair_value[symbol]:
+        exchange.send_limit_add_custom_size(symbol=symbol, dir=Dir.SELL, price=message["buy"][0][0], size=20)
+    if message["sell"] and fair_value[symbol] and message["sell"][0][0] < 0.9995 * fair_value[symbol]:
+        exchange.send_limit_add_custom_size(symbol=symbol, dir=Dir.BUY, price=message["sell"][0][0], size=20)
 
 
 def vale_valbz_arbitrage(exchange):
@@ -254,6 +260,15 @@ class ExchangeConnection:
         else: 
             sell_limit = limits[symbol] + positions[symbol] - pending_positions[symbol]["sell"]
             self.send_add_message(symbol, dir, price, sell_limit)
+    
+    def send_limit_add_custom_size(self, symbol:str, dir: Dir, price: int, size: int):
+        """Send an order with maximum size possible based on existing limits and current orders."""
+        if dir == Dir.BUY:
+            buy_limit = limits[symbol] - positions[symbol] - pending_positions[symbol]["buy"]
+            self.send_add_message(symbol, dir, price, min(size, buy_limit))
+        else: 
+            sell_limit = limits[symbol] + positions[symbol] - pending_positions[symbol]["sell"]
+            self.send_add_message(symbol, dir, price, min(size, sell_limit))
 
 
     def send_convert_message(self, symbol: str, dir: Dir, size: int):
