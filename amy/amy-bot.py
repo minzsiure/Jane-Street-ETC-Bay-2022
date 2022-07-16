@@ -93,9 +93,9 @@ def main():
         fair_value["VALE"] = fair_value["VALBZ"]
         if fair_value["BOND"] and fair_value["GS"] and fair_value["MS"] and fair_value["WFC"]:
             fair_value["XTF"] = (3 * fair_value["BOND"] + 2 * fair_value["GS"] + 3 * fair_value["MS"] + 2 * fair_value["WFC"]) / 10
-        if message["buy"][0][0] and fair_value[symbol] and message["buy"][0][0] > fair_value[symbol]:
+        if message["buy"] and fair_value[symbol] and message["buy"][0][0] > fair_value[symbol]:
             exchange.send_add_message(symbol=symbol, dir=Dir.SELL, price=message["buy"][0][0], size=50)
-        if message["sell"][0][0] and fair_value[symbol] and message["sell"][0][0] > fair_value[symbol]:
+        if message["sell"] and fair_value[symbol] and message["sell"][0][0] > fair_value[symbol]:
             exchange.send_add_message(symbol=symbol, dir=Dir.BUY, price=message["sell"][0][0], size=50)
 
     # Here is the main loop of the program. It will continue to read and
