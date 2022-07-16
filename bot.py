@@ -39,6 +39,9 @@ def main():
     hello_message = exchange.read_message()
     print("First message from exchange:", hello_message)
 
+    #fair value
+    fair_unit_price_in_cash = {'BOND':1000,'XLF':300,'GS':1500,'MS':1000,'WFC':1500}
+
     # Send an order for BOND at a good price, but it is low enough that it is
     # unlikely it will be traded against. Maybe there is a better price to
     # pick? Also, you will need to send more orders over time.
