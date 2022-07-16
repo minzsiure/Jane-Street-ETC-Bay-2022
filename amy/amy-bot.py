@@ -156,10 +156,11 @@ def cancel_orders(exchange):
         # we don't want the order if we're selling for lower than the worth
         # or buying for higher than the worth
         symbol, dir, price = pending_orders[order_id]
-        if dir == Dir.SELL and price < fair_value[symbol]:
-            exchange.send_cancel_message(order_id)
-        elif dir == Dir.BUY and price > fair_value[symbol]:
-            exchange.send_cancel_message(order_id)
+        if fair_value[symbol]:
+            if dir == Dir.SELL and price < fair_value[symbol]:
+                exchange.send_cancel_message(order_id)
+            elif dir == Dir.BUY and price > fair_value[symbol]:
+                exchange.send_cancel_message(order_id)
         to_delete.append(order_id)
     
     for order_id in to_delete:
