@@ -77,6 +77,8 @@ def main():
         if message["sell"]:
             ask_price[symbol] = message["sell"][0][0]
         if symbol in {"VALBZ", "GS", "MS", "WFC"}:
+            print("BOOK: " + symbol)
+            print(market_price[symbol])
             if bid_price[symbol] and ask_price[symbol]:
                 cur_price = (bid_price[symbol] + ask_price[symbol]) / 2
             elif bid_price[symbol]:
@@ -86,6 +88,7 @@ def main():
             if market_price[symbol]:
                 market_price[symbol] = past_wt * market_price[symbol] + cur_wt * cur_price
             else:
+                print("IN LINE 91")
                 # once we have market price, place an initial order of 100
                 exchange.send_add_message(symbol=symbol, dir=Dir.BUY, price=cur_price - 1, size=100)
                 exchange.send_add_message(symbol=symbol, dir=Dir.SELL, price=cur_price + 1, size=100)
@@ -134,6 +137,7 @@ def main():
                 positions[symbol] -= size
                 exchange.send_add_message(symbol=symbol, dir=Dir.SELL, price=market_price[symbol] + 1, size=size)
         elif message["type"] == "book":
+            print("BOOK ISSUED")
             update_market_price(message)
 
 
