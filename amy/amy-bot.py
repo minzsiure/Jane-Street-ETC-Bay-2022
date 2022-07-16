@@ -88,7 +88,9 @@ def main():
             else:
                 # once we have market price, place an initial order of 100
                 exchange.send_add_message(symbol=symbol, dir=Dir.BUY, price=cur_price - 1, size=100)
+                print("ORDER FOR BUY " + 100 + " SHARES OF " + symbol + " AT " + str(cur_price - 1))
                 exchange.send_add_message(symbol=symbol, dir=Dir.SELL, price=cur_price + 1, size=100)
+                print("ORDER FOR BUY " + 100 + " SHARES OF " + symbol + " AT " + str(cur_price - 1))
                 market_price[symbol] = cur_price
         market_price["VALE"] = market_price["VALBZ"]
         if market_price["BOND"] and market_price["GS"] and market_price["MS"] and market_price["WFC"]:
@@ -130,9 +132,11 @@ def main():
             if dir == Dir.BUY:
                 positions[symbol] += size
                 exchange.send_add_message(symbol=symbol, dir=Dir.BUY, price=market_price[symbol] - 1, size=size)
+                print("ORDER FOR BUY " + size + " SHARES OF " + symbol + " AT " + str(market_price[symbol] - 1))
             else:
                 positions[symbol] -= size
                 exchange.send_add_message(symbol=symbol, dir=Dir.SELL, price=market_price[symbol] + 1, size=size)
+                print("ORDER FOR SELL " + size + " SHARES OF " + symbol + " AT " + str(market_price[symbol] - 1))
         elif message["type"] == "book":
             update_market_price(message)
 
