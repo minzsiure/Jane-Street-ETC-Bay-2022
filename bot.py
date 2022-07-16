@@ -180,8 +180,9 @@ def update_fair_value(exchange, message):
             fair_value[symbol] = cur_price
 
     fair_value["VALE"] = fair_value["VALBZ"]
+    fair_value["BOND"] = 1000
     if fair_value["BOND"] and fair_value["GS"] and fair_value["MS"] and fair_value["WFC"]:
-        fair_value["XTF"] = (3 * fair_value["BOND"] + 2 * fair_value["GS"] + 3 * fair_value["MS"] + 2 * fair_value["WFC"]) / 10
+        fair_value["XLF"] = (3 * fair_value["BOND"] + 2 * fair_value["GS"] + 3 * fair_value["MS"] + 2 * fair_value["WFC"]) / 10
     
     # take advantage when fair_value and market prices don't match
     if message["buy"] and fair_value[symbol] and message["buy"][0][0] > 1.0005 * fair_value[symbol]:
