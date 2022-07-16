@@ -103,7 +103,7 @@ def main():
                 exchange.send_add_message(symbol=symbol, dir=Dir.BUY, price=buy_price, size=50)
                 print("ORDER FOR BUY 100 SHARES OF " + symbol + " AT " + str(buy_price))
                 exchange.send_add_message(symbol=symbol, dir=Dir.SELL, price=sell_price, size=50)
-                print("ORDER FOR SELL 100 SHARES OF " + symbol + " AT " + sell_price)
+                print("ORDER FOR SELL 100 SHARES OF " + symbol + " AT " + str(sell_price))
         market_price["VALE"] = market_price["VALBZ"]
         if market_price["BOND"] and market_price["GS"] and market_price["MS"] and market_price["WFC"]:
             market_price["XTF"] = (3 * market_price["BOND"] + 2 * market_price["GS"] + 3 * market_price["MS"] + 2 * market_price["WFC"]) / 10
