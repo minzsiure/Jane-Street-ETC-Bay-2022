@@ -128,10 +128,10 @@ def main():
 
                 if symbol == "BOND":
                     exchange.send_limit_add_message(symbol="BOND", dir=Dir.SELL, price=1001)
-                if symbol == "VALE" and bid_price["VALBZ"]:
-                    exchange.send_limit_add_message(symbol="VALBZ", dir=Dir.SELL, price=bid_price["VALBZ"])
-                if symbol == "VALBZ" and bid_price["VALE"]:
-                    exchange.send_limit_add_message(symbol="VALE", dir=Dir.SELL, price=bid_price["VALE"])
+                # if symbol == "VALE" and bid_price["VALBZ"]:
+                #     exchange.send_limit_add_message(symbol="VALBZ", dir=Dir.SELL, price=bid_price["VALBZ"])
+                # if symbol == "VALBZ" and bid_price["VALE"]:
+                #     exchange.send_limit_add_message(symbol="VALE", dir=Dir.SELL, price=bid_price["VALE"])
 
             else:
                 positions[symbol] -= size
@@ -145,7 +145,7 @@ def main():
             update_market_price(message)
 
         # Always run arbitrage buying engine. 
-        vale_valbz_arbitrage(exchange=exchange)
+        # vale_valbz_arbitrage(exchange=exchange)
 
 
 def update_market_price(message):
