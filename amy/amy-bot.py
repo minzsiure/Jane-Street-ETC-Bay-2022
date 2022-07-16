@@ -70,7 +70,7 @@ def main():
     market_price["BOND"] = 1000
     past_wt = 0.2
     cur_wt = 1 - past_wt
-    width = 0.005
+    width = 0.003
 
     def update_market_price(message):
         symbol = message["symbol"]
@@ -89,6 +89,7 @@ def main():
                 past_price = market_price[symbol]
                 market_price[symbol] = past_wt * market_price[symbol] + cur_wt * cur_price
                 if market_price[symbol] <= 0.99 * past_price or market_price[symbol] >= 1.01 * past_price:
+                    print(market_price)
                     buy_price = round((1 - width) * market_price[symbol])
                     sell_price = round((1 + width) * market_price[symbol])
                     exchange.send_add_message(symbol=symbol, dir=Dir.BUY, price=buy_price, size=10)
@@ -97,6 +98,7 @@ def main():
                     print("ORDER FOR SELL 10 SHARES OF " + symbol + " AT " + str(sell_price))
             else:
                 # once we have market price, place an initial order of 50
+                print(market_price)
                 market_price[symbol] = cur_price
                 buy_price = round((1 - width) * market_price[symbol])
                 sell_price = round((1 + width) * market_price[symbol])
@@ -107,7 +109,6 @@ def main():
         market_price["VALE"] = market_price["VALBZ"]
         if market_price["BOND"] and market_price["GS"] and market_price["MS"] and market_price["WFC"]:
             market_price["XTF"] = (3 * market_price["BOND"] + 2 * market_price["GS"] + 3 * market_price["MS"] + 2 * market_price["WFC"]) / 10
-        print(market_price)
     # Here is the main loop of the program. It will continue to read and
     # process messages in a loop until a "close" message is received. You
     # should write to code handle more types of messages (and not just print
