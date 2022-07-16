@@ -28,7 +28,7 @@ limits = {
     "WFC": 100, 
     "XLF": 100
 }
-market_price = {}
+fair_value = {}
 bid_price = {}
 ask_price = {}
 past_weight = 0.9
@@ -55,7 +55,7 @@ def main():
         pending_positions[symbol] = {}
         pending_positions[symbol]["buy"] = 0
         pending_positions[symbol]["sell"] = 0
-        market_price[symbol] = None
+        fair_value[symbol] = None
         bid_price[symbol] = None
         ask_price[symbol] = None
 
@@ -152,13 +152,15 @@ def main():
                         exchange.send_limit_add_message(symbol="BOND", dir=Dir.BUY, price=999)
 
         elif message["type"] == "book":
-            update_market_price(message)
+            update_fair_value(message)
 
             # Always run arbitrage buying engine. 
             vale_valbz_arbitrage(exchange=exchange)
 
 
-def update_market_price(message):
+def update_fair_value(exchange, message):
+    past_wt = 0.9
+    cur_wt = 1 - past_wt
     symbol = message["symbol"]
 
     if message["buy"]:
@@ -166,14 +168,29 @@ def update_market_price(message):
     if message["sell"]:
         ask_price[symbol] = message["sell"][0][0]
 
-    if message["buy"] and message["sell"]:
-        current_price = (message["buy"][0][1] * bid_price[symbol] + message["sell"][0][1] * ask_price[symbol]) / (message["buy"][0][1] + message["sell"][0][1])
-    elif message["buy"]:
-        current_price = bid_price[symbol]
-    elif message["sell"]:
-        current_price = ask_price[symbol]
+    if symbol in {"VALBZ", "GS", "MS", "WFC"}:
+        if message["buy"] and message["sell"]:
+            cur_price = (bid_price[symbol] * message["buy"][0][1] + ask_price[symbol] * message["sell"][0][1]) / (message["buy"][0][1] + message["sell"][0][1])
+            # cur_price = (bid_price[symbol] + ask_price[symbol]) / 2
+        elif message["buy"]:
+            cur_price = bid_price[symbol]
+        elif message["sell"]:
+            cur_price = ask_price[symbol]
+
+        if fair_value[symbol]:
+            fair_value[symbol] = past_wt * fair_value[symbol] + cur_wt * cur_price
+        else:
+            fair_value[symbol] = cur_price
+
+    fair_value["VALE"] = fair_value["VALBZ"]
+    if fair_value["BOND"] and fair_value["GS"] and fair_value["MS"] and fair_value["WFC"]:
+        fair_value["XTF"] = (3 * fair_value["BOND"] + 2 * fair_value["GS"] + 3 * fair_value["MS"] + 2 * fair_value["WFC"]) / 10
     
-    market_price[symbol] = current_price
+    # take advantage when fair_value and market prices don't match
+    if message["buy"] and fair_value[symbol] and message["buy"][0][0] > 1.001 * fair_value[symbol]:
+        exchange.send_add_message(symbol=symbol, dir=Dir.SELL, price=message["buy"][0][0], size=20)
+    if message["sell"] and fair_value[symbol] and message["sell"][0][0] < 0.999 * fair_value[symbol]:
+        exchange.send_add_message(symbol=symbol, dir=Dir.BUY, price=message["sell"][0][0], size=20)
 
 def vale_valbz_arbitrage(exchange):
     if bid_price["VALE"] and ask_price["VALBZ"]:
