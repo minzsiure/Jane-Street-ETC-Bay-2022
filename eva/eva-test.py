@@ -102,7 +102,7 @@ def main():
     # rate-limited and ignored. Please, don't do that!
     while True:
         message = exchange.read_message()
-
+        
         # Some of the message types below happen infrequently and contain
         # important information to help you understand what your bot is doing,
         # so they are printed in full. We recommend not always printing every
@@ -152,7 +152,10 @@ def main():
             market_price["VALE"] = market_price["VALBZ"]
             if market_price["BOND"] and market_price["GS"] and market_price["MS"] and market_price["WFC"]:
                 market_price["XTF"] = (3 * market_price["BOND"] + 2 * market_price["GS"] + 3 * market_price["MS"] + 2 * market_price["WFC"]) / 10
-
+        
+        # do xtf arbitrage
+        if market_price["BOND"] and market_price["GS"] and market_price["MS"] and market_price["WFC"] and market_price["XTF"]:
+            arbitrage_XTF(market_price)
 
 def check_and_buy_arbitrage_XTF_amount(positions, category, amount_to_match):
     if category == "XTF":
