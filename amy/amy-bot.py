@@ -68,7 +68,7 @@ def main():
         ask_price[symbol] = None
         market_price[symbol] = None
     market_price["BOND"] = 1000
-    past_wt = 0.2
+    past_wt = 0.8
     cur_wt = 1 - past_wt
 
     def update_market_price(message):
@@ -79,7 +79,7 @@ def main():
             ask_price[symbol] = message["sell"][0][0]
         if symbol in {"VALBZ", "GS", "MS", "WFC"}:
             if bid_price[symbol] and ask_price[symbol]:
-                cur_price = (bid_price[symbol] + ask_price[symbol]) / 2
+                cur_price = (message["buy"][0][1] * bid_price[symbol] + message["sell"][0][1] * ask_price[symbol]) / (message["buy"][0][1] + message["sell"][0][1])
             elif bid_price[symbol]:
                 cur_price = bid_price[symbol]
             elif ask_price[symbol]:
@@ -92,9 +92,9 @@ def main():
                 print("ORDER FOR SELL 10 SHARES OF " + symbol + " AT " + str(round(market_price[symbol] - 1)))
             else:
                 # once we have market price, place an initial order of 100
-                exchange.send_add_message(symbol=symbol, dir=Dir.BUY, price=round(cur_price - 1), size=100)
+                exchange.send_add_message(symbol=symbol, dir=Dir.BUY, price=round(cur_price - 1), size=50)
                 print("ORDER FOR BUY 100 SHARES OF " + symbol + " AT " + str(round(cur_price - 1)))
-                exchange.send_add_message(symbol=symbol, dir=Dir.SELL, price=round(cur_price + 1), size=100)
+                exchange.send_add_message(symbol=symbol, dir=Dir.SELL, price=round(cur_price + 1), size=50)
                 print("ORDER FOR SELL 100 SHARES OF " + symbol + " AT " + str(round(cur_price + 1)))
                 market_price[symbol] = cur_price
         market_price["VALE"] = market_price["VALBZ"]
