@@ -155,9 +155,9 @@ def main():
         
         # do XLF arbitrage
         if market_price["BOND"] and market_price["GS"] and market_price["MS"] and market_price["WFC"] and market_price["XLF"]:
-            arbitrage_XLF(market_price)
+            arbitrage_XLF(exchange, market_price)
 
-def check_and_buy_arbitrage_XLF_amount(positions, category, amount_to_match):
+def check_and_buy_arbitrage_XLF_amount(exchange, positions, category, amount_to_match,market_price):
     if category == "XLF":
         XLF_pos = positions["XLF"]
         # not enough, buy more xLf
@@ -172,7 +172,7 @@ def check_and_buy_arbitrage_XLF_amount(positions, category, amount_to_match):
                 exchange.send_add_message(symbol=comp, dir=Dir.BUY, price=market_price[comp], size=amount_to_match[comp]-current_pos[comp]) 
 
 
-def arbitrage_XLF(market_price):
+def arbitrage_XLF(exchange, market_price):
     conversion_fee = 100
     BOND, GS, MS, WFC, XLF = market_price["BOND"], market_price["GS"], market_price["MS"], market_price["WFC"], market_price["XLF"]
     # compute how curernt market price add up for 10 xLf
@@ -189,7 +189,7 @@ def arbitrage_XLF(market_price):
         exchange.send_add_message(symbol="XLF", dir=Dir.SELL, price=market_price["XLF"], size=positions["XLF"]) 
         
         # if we don't have enough stocks, buy them first so we have 3,2,3,2
-        check_and_buy_arbitrage_XLF_amount(positions,"components",amount_to_match)
+        check_and_buy_arbitrage_XLF_amount(exchange, positions,"components",amount_to_match, market_price)
 
         # convert stocks into XLF, BUY receives XLF
         exchange.send_convert_message(symbol="XLF",dir=Dir.BUY, size=10)
@@ -208,7 +208,7 @@ def arbitrage_XLF(market_price):
     # it also means we need to buy XLF
     elif diff < -100:
         # TODO if we don't have enough XLF, buy XLF such that we have 10
-        check_and_buy_arbitrage_XLF_amount(positions,"XLF",amount_to_match)
+        check_and_buy_arbitrage_XLF_amount(exchange,positions,"XLF",amount_to_match,market_price)
         
         # convert XLF to stocks, SELL gives out XLF and gives us components
         exchange.send_convert_message(symbol="XLF",dir=Dir.SELL, size=10)
