@@ -76,8 +76,8 @@ def main():
     # Send an order for BOND at a good price, but it is low enough that it is
     # unlikely it will be traded against. Maybe there is a better price to
     # pick? Also, you will need to send more orders over time.
-    exchange.send_add_message(symbol="BOND", dir=Dir.BUY, price=999, size=100)
-    exchange.send_add_message(symbol="BOND", dir=Dir.SELL, price=1001, size=100)
+    exchange.send_limit_add_message(symbol="BOND", dir=Dir.BUY, price=999)
+    exchange.send_limit_add_message(symbol="BOND", dir=Dir.SELL, price=1001)
 
     # Here is the main loop of the program. It will continue to read and
     # process messages in a loop until a "close" message is received. You
