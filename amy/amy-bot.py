@@ -197,8 +197,10 @@ def update_fair_value(exchange, message):
     if fair_value["BOND"] and fair_value["GS"] and fair_value["MS"] and fair_value["WFC"]:
         fair_value["XLF"] = (3 * fair_value["BOND"] + 2 * fair_value["GS"] + 3 * fair_value["MS"] + 2 * fair_value["WFC"]) / 10
     # take advantage when fair_value and market prices don't match
+    if fair_value[symbol]:
+        print("FAIR VALUE OF " + str(symbol) + " : " + str(round(fair_value[symbol])))
     place_orders(exchange, symbol)
-    cancel_orders(exchange)
+    #cancel_orders(exchange)
 
 
 def vale_valbz_arbitrage(exchange):
