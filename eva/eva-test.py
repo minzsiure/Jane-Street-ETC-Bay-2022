@@ -177,14 +177,14 @@ def check_and_buy_arbitrage_XLF_amount(exchange, positions, category, amount_to_
     if category == "XLF":
         XLF_pos = positions["XLF"]
         # not enough, buy more xLf
-        if XLF_pos - amount_to_match["XLF"] < 0 and ask_price["XLF"] <= 0.95*fairvalue["XLF"]:
+        if XLF_pos - amount_to_match["XLF"] < 0 and ask_price["XLF"] <= 0.95*fair_value["XLF"]:
             exchange.send_add_message(symbol="XLF", dir=Dir.BUY, price=round(ask_price["XLF"]), size=amount_to_match["XLF"]-XLF_pos) 
             print("checked. not enough XLF", "buying", amount_to_match["XLF"]-XLF_pos, "at", fair_value["XLF"])
 
     elif category == "components":
         current_pos = {"BOND":positions["BOND"], "GS":positions["GS"], "MS":positions["MS"], "WFC":positions["WFC"]}
         for comp in current_pos.keys():
-            if positions[comp] - amount_to_match[comp] < 0 and ask_price[comp] <= 0.95*fairvalue["XLF"]:
+            if positions[comp] - amount_to_match[comp] < 0 and ask_price[comp] <= 0.95*fair_value["XLF"]:
                 exchange.send_add_message(symbol=comp, dir=Dir.BUY, price=round(ask_price[comp]), size=amount_to_match[comp]-current_pos[comp]) 
                 print("checked. not enough", comp, "buying", amount_to_match[comp]-current_pos[comp], "at", fair_value[comp])
 
@@ -202,7 +202,7 @@ def arbitrage_XLF(exchange, fair_value):
     # it also means we need to buy all stocks seperately
     if diff > 100: 
         # sell all XLF we have
-        if positions["XLF"] > 0 and bid_price["XLF"] > 1.05*fairvalue["XLF"]:
+        if positions["XLF"] > 0 and bid_price["XLF"] > 1.05*fair_value["XLF"]:
             exchange.send_add_message(symbol="XLF", dir=Dir.SELL, price=round(bid_price["XLF"]), size=positions["XLF"]) 
             print("selling all XLF at", round(bid_price["XLF"]))
         
