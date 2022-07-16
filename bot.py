@@ -151,32 +151,37 @@ def main():
 
 
 def update_fair_value(exchange, message):
-    past_wt = 0.8
+    past_wt = 0.9
     cur_wt = 1 - past_wt
     symbol = message["symbol"]
+
     if message["buy"]:
         bid_price[symbol] = message["buy"][0][0]
     if message["sell"]:
         ask_price[symbol] = message["sell"][0][0]
+
     if symbol in {"VALBZ", "GS", "MS", "WFC"}:
-        if bid_price[symbol] and ask_price[symbol]:
-            cur_price = (bid_price[symbol] + ask_price[symbol]) / 2
-        elif bid_price[symbol]:
+        if message["buy"] and message["sell"]:
+            cur_price = (bid_price[symbol] * message["buy"][0][1] + ask_price[symbol] * message["sell"][0][1]) / (message["buy"][0][1] + message["sell"][0][1])
+        elif message["buy"]:
             cur_price = bid_price[symbol]
-        elif ask_price[symbol]:
+        elif message["sell"]:
             cur_price = ask_price[symbol]
+
         if fair_value[symbol]:
             fair_value[symbol] = past_wt * fair_value[symbol] + cur_wt * cur_price
         else:
             fair_value[symbol] = cur_price
+
     fair_value["VALE"] = fair_value["VALBZ"]
     if fair_value["BOND"] and fair_value["GS"] and fair_value["MS"] and fair_value["WFC"]:
         fair_value["XTF"] = (3 * fair_value["BOND"] + 2 * fair_value["GS"] + 3 * fair_value["MS"] + 2 * fair_value["WFC"]) / 10
+    
     # take advantage when fair_value and market prices don't match
-    if message["buy"] and fair_value[symbol] and message["buy"][0][0] > 1.0005 * fair_value[symbol]:
-        exchange.send_limit_add_custom_size(symbol=symbol, dir=Dir.SELL, price=message["buy"][0][0], size=20)
-    if message["sell"] and fair_value[symbol] and message["sell"][0][0] < 0.9995 * fair_value[symbol]:
-        exchange.send_limit_add_custom_size(symbol=symbol, dir=Dir.BUY, price=message["sell"][0][0], size=20)
+    if message["buy"] and fair_value[symbol] and message["buy"][0][0] > 1.001 * fair_value[symbol]:
+        exchange.send_limit_add_custom_size(symbol=symbol, dir=Dir.SELL, price=message["buy"][0][0], size=10)
+    if message["sell"] and fair_value[symbol] and message["sell"][0][0] < 0.999 * fair_value[symbol]:
+        exchange.send_limit_add_custom_size(symbol=symbol, dir=Dir.BUY, price=message["sell"][0][0], size=10)
 
 
 def vale_valbz_arbitrage(exchange):
