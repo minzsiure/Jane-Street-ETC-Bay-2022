@@ -135,9 +135,8 @@ def main():
             update_market_price(message)
 
             # Always run arbitrage buying engine. 
-            # if symbol == "VALE" or symbol == "VALBZ":
-            #     vale_valbz_arbitrage(exchange=exchange)
-            
+            # vale_valbz_arbitrage(exchange=exchange)
+
             # do XLF arbitrage
             if symbol == "XLF" and market_price["BOND"] and market_price["GS"] and market_price["MS"] and market_price["WFC"] and market_price["XLF"]:
                 arbitrage_XLF(exchange, market_price)
@@ -172,7 +171,6 @@ def vale_valbz_arbitrage(exchange):
         if valbz_vale_difference > 10: 
             exchange.send_limit_add_message(symbol="VALE", dir=Dir.BUY, price=ask_price["VALE"])
 
-            
 def check_and_buy_arbitrage_XLF_amount(exchange, positions, category, amount_to_match,market_price):
     if category == "XLF":
         XLF_pos = positions["XLF"]

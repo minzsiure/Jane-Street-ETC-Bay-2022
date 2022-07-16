@@ -1,7 +1,9 @@
 # do XLF arbitrage
-        if market_price["BOND"] and market_price["GS"] and market_price["MS"] and market_price["WFC"] and market_price["XLF"]:
-            arbitrage_XLF(exchange, market_price)
-            
+            if symbol == "XLF" and market_price["BOND"] and market_price["GS"] and market_price["MS"] and market_price["WFC"] and market_price["XLF"]:
+                arbitrage_XLF(exchange, market_price)
+
+###########
+
 def check_and_buy_arbitrage_XLF_amount(exchange, positions, category, amount_to_match,market_price):
     if category == "XLF":
         XLF_pos = positions["XLF"]
@@ -65,3 +67,4 @@ def arbitrage_XLF(exchange, market_price):
 
         # Buy up to 10 XLF
         exchange.send_add_message(symbol="XLF", dir=Dir.BUY, price=market_price["XLF"], size=10) 
+
