@@ -67,7 +67,7 @@ def main():
         ask_price[symbol] = None
         market_price[symbol] = None
     market_price["BOND"] = 1000
-    past_wt = 0.5
+    past_wt = 0.8
     cur_wt = 1 - past_wt
 
     def update_market_price(message):
