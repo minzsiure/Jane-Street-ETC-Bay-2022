@@ -139,6 +139,7 @@ def main():
 
             # do XLF arbitrage
             if symbol == "XLF" and market_price["BOND"] and market_price["GS"] and market_price["MS"] and market_price["WFC"] and market_price["XLF"]:
+                print(message)
                 arbitrage_XLF(exchange, market_price)
 
 
