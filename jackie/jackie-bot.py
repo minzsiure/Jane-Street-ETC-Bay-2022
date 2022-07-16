@@ -17,9 +17,8 @@ import json
 # Replace "REPLACEME" with your team name!
 team_name = "BASKINGSHARKS"
 all_orders = {} 
-arbitrage_orders = {}
-pending_positions = {}
 positions = {}
+pending_positions = {}
 limits = {
     "BOND": 100, 
     "VALBZ": 10, 
@@ -27,7 +26,7 @@ limits = {
     "GS": 100, 
     "MS": 100, 
     "WFC": 100, 
-    "XLS": 100
+    "XLF": 100
 }
 market_price = {}
 bid_price = {}
@@ -179,12 +178,12 @@ def update_market_price(message):
 def vale_valbz_arbitrage(exchange):
     if bid_price["VALE"] and ask_price["VALBZ"]:
         vale_valbz_difference = bid_price["VALE"] - ask_price["VALBZ"]
-        if vale_valbz_difference > 20 + bid_price["VALE"] * 0.01: 
-            exchange.send_limit_add_message(symbol="VALBZ", dir=Dir.BUY, price=ask_price["VALBZ"])
+        if vale_valbz_difference > 20: 
+            exchange.send_limit_add_message(symbol="VALBZ", dir=Dir.BUY, price=ask_price["VALBZ"] + 5)
     if bid_price["VALBZ"] and ask_price["VALE"]:
         valbz_vale_difference = bid_price["VALBZ"] - ask_price["VALE"]
-        if valbz_vale_difference > 20 + bid_price["VALBZ"] * 0.01: 
-            exchange.send_limit_add_message(symbol="VALE", dir=Dir.BUY, price=ask_price["VALE"])
+        if valbz_vale_difference > 20: 
+            exchange.send_limit_add_message(symbol="VALE", dir=Dir.BUY, price=ask_price["VALE"] + 5)
 
 # ~~~~~============== PROVIDED CODE ==============~~~~~
 
