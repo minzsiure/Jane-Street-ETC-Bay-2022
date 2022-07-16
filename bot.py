@@ -2,7 +2,7 @@
 # ~~~~~==============   HOW TO RUN   ==============~~~~~
 # 1) Configure things in CONFIGURATION section
 # 2) Change permissions: chmod +x bot.py
-# 3) Run in loop: while true; do ./eva-test.py --test prod-like; sleep 1; done
+# 3) Run in loop: while true; do ./bot.py --test prod-like; sleep 1; done
 
 import argparse
 from collections import deque
@@ -13,7 +13,7 @@ import json
 
 # ~~~~~============== CONFIGURATION  ==============~~~~~
 # Replace "REPLACEME" with your team name!
-team_name = "Basking Sharks"
+team_name = "baskingsharks"
 
 # ~~~~~============== MAIN LOOP ==============~~~~~
 
@@ -42,8 +42,7 @@ def main():
     # Send an order for BOND at a good price, but it is low enough that it is
     # unlikely it will be traded against. Maybe there is a better price to
     # pick? Also, you will need to send more orders over time.
-    exchange.send_add_message(order_id=1, symbol="BOND", dir=Dir.BUY, price=999, size=50)
-    exchange.send_add_message(order_id=2, symbol="BOND", dir=Dir.SELL, price=1001, size=50)
+    exchange.send_add_message(order_id=1, symbol="BOND", dir=Dir.BUY, price=990, size=1)
 
     # Set up some variables to track the bid and ask price of a symbol. Right
     # now this doesn't track much information, but it's enough to get a sense
@@ -228,7 +227,7 @@ def parse_arguments():
 if __name__ == "__main__":
     # Check that [team_name] has been updated.
     assert (
-        team_name != "Basking Sharks"
+        team_name != ""
     ), "Please put your team name in the variable [team_name]."
 
     main()
