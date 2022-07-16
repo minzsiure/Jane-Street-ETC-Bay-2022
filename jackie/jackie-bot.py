@@ -219,39 +219,40 @@ class ExchangeConnection:
         self, symbol: str, dir: Dir, price: int, size: int
     ):
         """Add a new order"""
-        buy_limit = limits[symbol] - positions[symbol] - pending_positions[symbol]["buy"]
-        sell_limit = limits[symbol] + positions[symbol] - pending_positions[symbol]["sell"]
+        if size != 0:
+            buy_limit = limits[symbol] - positions[symbol] - pending_positions[symbol]["buy"]
+            sell_limit = limits[symbol] + positions[symbol] - pending_positions[symbol]["sell"]
 
-        if dir == Dir.BUY and size > buy_limit:
-            print("!!!BUYING POSITION LIMIT EXCEEDED!!!", positions[symbol], size)
-        elif dir == Dir.SELL and size > sell_limit: 
-            print("!!!SELLING POSITION LIMIT EXCEEDED!!!", positions[symbol], size)
-        else:
-            self.order_id += 1
+            if dir == Dir.BUY and size > buy_limit:
+                print("!!!BUYING POSITION LIMIT EXCEEDED!!!", positions[symbol], size)
+            elif dir == Dir.SELL and size > sell_limit: 
+                print("!!!SELLING POSITION LIMIT EXCEEDED!!!", positions[symbol], size)
+            else:
+                self.order_id += 1
 
-            self._write_message(
-                {
+                self._write_message(
+                    {
+                        "type": "add",
+                        "order_id": self.order_id,
+                        "symbol": symbol,
+                        "dir": dir,
+                        "price": price,
+                        "size": size,
+                    }
+                )
+
+                all_orders[self.order_id] = {
                     "type": "add",
-                    "order_id": self.order_id,
                     "symbol": symbol,
                     "dir": dir,
                     "price": price,
-                    "size": size,
+                    "size": size
                 }
-            )
 
-            all_orders[self.order_id] = {
-                "type": "add",
-                "symbol": symbol,
-                "dir": dir,
-                "price": price,
-                "size": size
-            }
-
-            if dir == Dir.BUY:
-                pending_positions[symbol]["buy"] += size
-            else: 
-                pending_positions[symbol]["sell"] += size
+                if dir == Dir.BUY:
+                    pending_positions[symbol]["buy"] += size
+                else: 
+                    pending_positions[symbol]["sell"] += size
 
     def send_limit_add_message(self, symbol:str, dir: Dir, price: int):
         """Send an order with maximum size possible based on existing limits and current orders."""
@@ -265,37 +266,38 @@ class ExchangeConnection:
 
     def send_convert_message(self, symbol: str, dir: Dir, size: int):
         """Convert between related symbols"""
-        self.order_id += 1
+        if size != 0:
+            self.order_id += 1
 
-        self._write_message(
-            {
+            self._write_message(
+                {
+                    "type": "convert",
+                    "order_id": self.order_id,
+                    "symbol": symbol,
+                    "dir": dir,
+                    "size": size,
+                }
+            )
+            all_orders[self.order_id] = {
                 "type": "convert",
-                "order_id": self.order_id,
                 "symbol": symbol,
                 "dir": dir,
-                "size": size,
+                "size": size
             }
-        )
-        all_orders[self.order_id] = {
-            "type": "convert",
-            "symbol": symbol,
-            "dir": dir,
-            "size": size
-        }
 
-        if dir == Dir.BUY and symbol == "VALE":
-            pending_positions["VALE"]["buy"] += size 
-        if dir == Dir.SELL and symbol == "VALE":
-            pending_positions["VALBZ"]["buy"] += size 
+            if dir == Dir.BUY and symbol == "VALE":
+                pending_positions["VALE"]["buy"] += size 
+            if dir == Dir.SELL and symbol == "VALE":
+                pending_positions["VALBZ"]["buy"] += size 
     
     def send_limit_convert_message(self, symbol: str, dir: Dir, size: int):
         if symbol == "VALE":
             if dir == Dir.BUY:
                 limit = limits["VALE"] - positions["VALE"] - pending_positions["VALE"]["buy"]
-                size = max(size, limit)
+                size = min(size, limit)
             else:
                 limit = limits["VALBZ"] - positions["VALBZ"] - pending_positions["VALBZ"]["buy"]
-                size = max(size, limit)
+                size = min(size, limit)
 
             self.send_convert_message(symbol, dir, size)
 
