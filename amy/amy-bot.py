@@ -86,10 +86,10 @@ def main():
                 cur_price = ask_price[symbol]
             if market_price[symbol]:
                 market_price[symbol] = past_wt * market_price[symbol] + cur_wt * cur_price
-                #exchange.send_add_message(symbol=symbol, dir=Dir.BUY, price=market_price[symbol] - 1, size=10)
-                #print("ORDER FOR BUY 10 SHARES OF " + symbol + " AT " + str(market_price[symbol] - 1))
-                #exchange.send_add_message(symbol=symbol, dir=Dir.SELL, price=market_price[symbol] + 1, size=10)
-                #print("ORDER FOR SELL 10 SHARES OF " + symbol + " AT " + str(market_price[symbol] + 1))
+                exchange.send_add_message(symbol=symbol, dir=Dir.BUY, price=round(market_price[symbol] - 1), size=10)
+                print("ORDER FOR BUY 10 SHARES OF " + symbol + " AT " + str(round(market_price[symbol] - 1)))
+                exchange.send_add_message(symbol=symbol, dir=Dir.SELL, price=round(market_price[symbol] + 1), size=10)
+                print("ORDER FOR SELL 10 SHARES OF " + symbol + " AT " + str(round(market_price[symbol] - 1)))
             else:
                 # once we have market price, place an initial order of 100
                 exchange.send_add_message(symbol=symbol, dir=Dir.BUY, price=round(cur_price - 1), size=100)
