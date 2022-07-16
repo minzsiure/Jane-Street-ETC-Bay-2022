@@ -267,6 +267,15 @@ class ExchangeConnection:
             sell_limit = limits[symbol] + positions[symbol] - pending_positions[symbol]["sell"]
             self.send_add_message(symbol, dir, price, sell_limit)
 
+    def send_limit_add_custom_size(self, symbol:str, dir: Dir, price: int, size: int):
+        """Send an order with maximum size possible based on existing limits and current orders."""
+        if dir == Dir.BUY:
+            buy_limit = limits[symbol] - positions[symbol] - pending_positions[symbol]["buy"]
+            self.send_add_message(symbol, dir, price, min(size, buy_limit))
+        else: 
+            sell_limit = limits[symbol] + positions[symbol] - pending_positions[symbol]["sell"]
+            self.send_add_message(symbol, dir, price, min(size, sell_limit))
+
 
     def send_convert_message(self, symbol: str, dir: Dir, size: int):
         """Convert between related symbols"""
