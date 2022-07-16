@@ -2,7 +2,9 @@
 # ~~~~~==============   HOW TO RUN   ==============~~~~~
 # 1) Configure things in CONFIGURATION section
 # 2) Change permissions: chmod +x bot.py
-# 3) Run in loop: while true; do ./bot.py --test prod-like; sleep 1; done
+# 3) Run in loop: 
+# while true; do ./bot.py --test prod-like; sleep 1; done
+# while true; do ./jackie-bot.py --test prod-like; sleep 1; done
 
 import argparse
 from collections import deque
@@ -25,7 +27,7 @@ team_name = "BASKINGSHARKS"
 # price, and it prints the current prices for VALE every second. The sample
 # code is intended to be a working example, but it needs some improvement
 # before it will start making good trades!
-
+ORDER_ID = 1
 
 def main():
     args = parse_arguments()
@@ -54,8 +56,8 @@ def main():
     # Send an order for BOND at a good price, but it is low enough that it is
     # unlikely it will be traded against. Maybe there is a better price to
     # pick? Also, you will need to send more orders over time.
-    exchange.send_add_message(order_id=1, symbol="BOND", dir=Dir.BUY, price=999, size=100)
-    exchange.send_add_message(order_id=2, symbol="BOND", dir=Dir.SELL, price=1001, size=100)
+    exchange.send_add_message(symbol="BOND", dir=Dir.BUY, price=999, size=100)
+    exchange.send_add_message(symbol="BOND", dir=Dir.SELL, price=1001, size=100)
 
     # Set up some variables to track the bid and ask price of a symbol. Right
     # now this doesn't track much information, but it's enough to get a sense
@@ -98,14 +100,12 @@ def main():
             size = message["size"]
             if dir == Dir.BUY:
                 positions[symbol] += size
+                if symbol == "BOND":
+                    exchange.send_add_message(symbol="BOND", dir=Dir.BUY, price=999, size=size)
             else:
+                if symbol == "BOND":
+                    exchange.send_add_message(symbol="BOND", dir=Dir.SELL, price=1001, size=size)
                 positions[symbol] -= size
-            
-            if symbol == "BOND":
-                buy_left = 100 - positions[symbol]
-                sell_left = positions[symbol] - 100
-                exchange.send_add_message(order_id=1, symbol="BOND", dir=Dir.BUY, price=999, size=buy_left)
-                exchange.send_add_message(order_id=1, symbol="BOND", dir=Dir.BUY, price=999, size=sell_left)
 
         elif message["type"] == "book":
 
@@ -159,13 +159,14 @@ class ExchangeConnection:
         return message
 
     def send_add_message(
-        self, order_id: int, symbol: str, dir: Dir, price: int, size: int
+        self, symbol: str, dir: Dir, price: int, size: int
     ):
         """Add a new order"""
+        ORDER_ID += 1
         self._write_message(
             {
                 "type": "add",
-                "order_id": order_id,
+                "order_id": ORDER_ID,
                 "symbol": symbol,
                 "dir": dir,
                 "price": price,
