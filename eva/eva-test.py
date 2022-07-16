@@ -240,10 +240,8 @@ def arbitrage_XLF(exchange, fair_value):
             print("hitting here 1")
             # TODO if we don't have enough XLF, buy XLF such that we have 10
             if check_and_buy_arbitrage_XLF_amount(exchange,positions,"XLF",amount_to_match,fair_value):
-
-                if positions["BOND"] > 3 and positions["GS"] > 2 and positions["MS"] > 3 and positions["WFC"] > 98:
-                    exchange.send_convert_message(symbol="XLF",dir=Dir.SELL, size=10)
-                    print("converting 10XLFs to stocks")
+                exchange.send_convert_message(symbol="XLF",dir=Dir.SELL, size=10)
+                print("converting 10XLFs to stocks")
 
                 # sell seperate stocks 3 BOND, 2 GS, 3 MS, 2 WFC 
                 # TODO This needs to be based on our current position
