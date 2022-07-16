@@ -101,9 +101,6 @@ def main():
     # rate-limited and ignored. Please, don't do that!
     while True:
         message = exchange.read_message()
-        
-        # Always run arbitrage buying engine. 
-        vale_valbz_arbitrage(exchange=exchange)
 
         # Some of the message types below happen infrequently and contain
         # important information to help you understand what your bot is doing,
@@ -145,6 +142,9 @@ def main():
 
         elif message["type"] == "book":
             update_market_price(message)
+
+        # Always run arbitrage buying engine. 
+        vale_valbz_arbitrage(exchange=exchange)
 
 
 def update_market_price(message):
