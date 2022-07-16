@@ -14,9 +14,11 @@ import json
 # ~~~~~============== CONFIGURATION  ==============~~~~~
 # Replace "REPLACEME" with your team name!
 team_name = "BASKINGSHARKS"
+symbols = ["BOND", "VALE", "VALBZ", "GS", "MS", "WFC", "XLF"]
 all_orders = {} 
 positions = {}
 pending_positions = {}
+pending_orders = {}
 limits = {
     "BOND": 100, 
     "VALBZ": 10, 
@@ -45,8 +47,6 @@ ask_price = {}
 
 def main():
     args = parse_arguments()
-
-    symbols = ["BOND", "VALE", "VALBZ", "GS", "MS", "WFC", "XLF"]
 
     for symbol in symbols:
         positions[symbol] = 0
@@ -116,7 +116,8 @@ def main():
             dir = message["dir"]
             size = message["size"]
             message_type = all_orders[message["order_id"]]["type"]
-
+            # delete from pending orders
+            del pending_orders[message["order_id"]]
             if dir == Dir.BUY:
                 positions[symbol] += size
                 pending_positions[symbol]["buy"] -= size
@@ -149,6 +150,21 @@ def main():
             # Always run arbitrage buying engine. 
             vale_valbz_arbitrage(exchange=exchange)
 
+def cancel_orders(exchange):
+    to_delete = []
+    for order_id in pending_orders:
+        # we don't want the order if we're selling for lower than the worth
+        # or buying for higher than the worth
+        symbol, dir, price = pending_orders[order_id]
+        if dir == Dir.SELL and price < fair_value[symbol]:
+            exchange.send_cancel_message(order_id)
+        elif dir == Dir.BUY and price > fair_value[symbol]:
+            exchange.send_cancel_message(order_id)
+        to_delete.append(order_id)
+    
+    for order_id in to_delete:
+        del pending_orders[order_id]
+
 
 def update_fair_value(exchange, message):
     past_wt = 0.8
@@ -177,6 +193,7 @@ def update_fair_value(exchange, message):
         exchange.send_limit_add_custom_size(symbol=symbol, dir=Dir.SELL, price=message["buy"][0][0], size=20)
     if message["sell"] and fair_value[symbol] and message["sell"][0][0] < 0.9995 * fair_value[symbol]:
         exchange.send_limit_add_custom_size(symbol=symbol, dir=Dir.BUY, price=message["sell"][0][0], size=20)
+    cancel_orders(exchange)
 
 
 def vale_valbz_arbitrage(exchange):
@@ -233,6 +250,8 @@ class ExchangeConnection:
                 print("!!!SELLING POSITION LIMIT EXCEEDED!!!", positions[symbol], size)
             else:
                 self.order_id += 1
+                if size > 0:
+                    pending_orders[self.order_id] = (symbol, dir, price)
 
                 self._write_message(
                     {
