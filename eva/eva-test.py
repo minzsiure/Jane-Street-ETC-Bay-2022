@@ -51,14 +51,14 @@ def main():
     # Set up some variables to track the bid and ask price of a symbol. Right
     # now this doesn't track much information, but it's enough to get a sense
     # of the VALE market.
-    symbols = ["BOND", "VALBZ", "VALE", "GS", "MS", "WLC", "XLS"]
-    bid_price = {}
-    ask_price = {}
-    for symbol in symbols:
-        bid_price[symbol] = None
-        ask_price[symbol] = None
-    # vale_bid_price, vale_ask_price = None, None
-    # vale_last_print_time = time.time()
+    # symbols = ["BOND", "VALBZ", "VALE", "GS", "MS", "WLC", "XLS"]
+    # bid_price = {}
+    # ask_price = {}
+    # for symbol in symbols:
+    #     bid_price[symbol] = None
+    #     ask_price[symbol] = None
+    vale_bid_price, vale_ask_price = None, None
+    vale_last_print_time = time.time()
 
     # Here is the main loop of the program. It will continue to read and
     # process messages in a loop until a "close" message is received. You
