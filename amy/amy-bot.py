@@ -107,7 +107,7 @@ def main():
         market_price["VALE"] = market_price["VALBZ"]
         if market_price["BOND"] and market_price["GS"] and market_price["MS"] and market_price["WFC"]:
             market_price["XTF"] = (3 * market_price["BOND"] + 2 * market_price["GS"] + 3 * market_price["MS"] + 2 * market_price["WFC"]) / 10
-
+        print(market_price)
     # Here is the main loop of the program. It will continue to read and
     # process messages in a loop until a "close" message is received. You
     # should write to code handle more types of messages (and not just print
