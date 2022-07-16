@@ -56,8 +56,8 @@ def main():
     # Set up some variables to track the bid and ask price of a symbol. Right
     # now this doesn't track much information, but it's enough to get a sense
     # of the VALE market.
-    symbols = ["BOND", "VALBZ", "VALE", "GS", "MS", "WFC", "XLS"]
-    limits = {"BOND":100, "VALBZ":10, "VALE":10, "GS":100, "MS":100, "WFC":100, "XLS":100}
+    symbols = ["BOND", "VALBZ", "VALE", "GS", "MS", "WFC", "XLF"]
+    limits = {"BOND":100, "VALBZ":10, "VALE":10, "GS":100, "MS":100, "WFC":100, "XLF":100}
     for symbol in symbols:
         positions[symbol] = 0
     bid_price = {}
