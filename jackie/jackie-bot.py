@@ -144,8 +144,7 @@ def main():
             update_market_price(message)
 
             # Always run arbitrage buying engine. 
-            if symbol == "VALE" or symbol == "VALBZ":
-                vale_valbz_arbitrage(exchange=exchange)
+            vale_valbz_arbitrage(exchange=exchange)
 
 
 def update_market_price(message):
@@ -163,10 +162,7 @@ def update_market_price(message):
     elif message["sell"]:
         current_price = ask_price[symbol]
     
-    if market_price[symbol]:
-        market_price[symbol] = past_weight * market_price[symbol] + current_weight * current_price
-    else:
-        market_price[symbol] = current_price
+    market_price[symbol] = current_price
 
 def vale_valbz_arbitrage(exchange):
     if bid_price["VALE"] and ask_price["VALBZ"]:
