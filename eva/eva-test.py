@@ -227,7 +227,7 @@ def arbitrage_XLF(exchange, fair_value):
                 # buy stocks 3 BOND, 2 GS, 3 MS, 2 WFC 
                 for stock, amount in stock_amount.items():
                     if ask_price[stock] <= 0.95 * fair_value[stock]:
-                        exchange.send_limit_add_message(symbol=stock, dir=Dir.BUY, price=round(ask_price[stock])
+                        exchange.send_limit_add_message(symbol=stock, dir=Dir.BUY, price=round(ask_price[stock]))
                         print("sending orders to buy 3:2:3:2 stocks, buying", amount, stock, "at", ask_price[stock])
 
     # if all stocks adding up is greater than current XLF market price, 
