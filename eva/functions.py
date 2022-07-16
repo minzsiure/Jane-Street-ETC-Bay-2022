@@ -1,9 +1,13 @@
-def check_and_buy_arbitrage_XTF_amount(positions, category, amount_to_match):
-    if category == "XTF":
-        XTF_pos = positions["XTF"]
-        # not enough, buy more xtf
-        if XTF_pos - amount_to_match["XTF"] < 0:
-            exchange.send_add_message(symbol="XLF", dir=Dir.BUY, price=market_price["XLF"], size=amount_to_match["XTF"]-XTF_pos) 
+# do XLF arbitrage
+        if market_price["BOND"] and market_price["GS"] and market_price["MS"] and market_price["WFC"] and market_price["XLF"]:
+            arbitrage_XLF(exchange, market_price)
+            
+def check_and_buy_arbitrage_XLF_amount(exchange, positions, category, amount_to_match,market_price):
+    if category == "XLF":
+        XLF_pos = positions["XLF"]
+        # not enough, buy more xLf
+        if XLF_pos - amount_to_match["XLF"] < 0:
+            exchange.send_add_message(symbol="XLF", dir=Dir.BUY, price=market_price["XLF"], size=amount_to_match["XLF"]-XLF_pos) 
 
     elif category == "components":
         current_pos = {"BOND":positions["BOND"], "GS":positions["GS"], "MS":positions["MS"], "WFC":positions["WFC"]}
@@ -13,14 +17,14 @@ def check_and_buy_arbitrage_XTF_amount(positions, category, amount_to_match):
                 exchange.send_add_message(symbol=comp, dir=Dir.BUY, price=market_price[comp], size=amount_to_match[comp]-current_pos[comp]) 
 
 
-def arbitrage_XTF(market_price):
+def arbitrage_XLF(exchange, market_price):
     conversion_fee = 100
-    BOND, GS, MS, WFC = market_price["BOND"], market_price["GS"], market_price["MS"], market_price["WFC"]
-    # compute how curernt market price add up for 10 xtf
-    add_on_market_price_for_XTF = 3*BOND + 2*GS + 3*MS + 2*WFC
+    BOND, GS, MS, WFC, XLF = market_price["BOND"], market_price["GS"], market_price["MS"], market_price["WFC"], market_price["XLF"]
+    # compute how curernt market price add up for 10 xLf
+    add_on_market_price_for_XLF = 3*BOND + 2*GS + 3*MS + 2*WFC
     stock_amount = {'BOND':3, 'GS':2, 'MS':3, 'WFC':2}
-    amount_to_match = {'BOND':3, 'GS':2, 'MS':3, 'WFC':2, 'XFC':10}
-    diff = XLF - add_on_market_price_for_XTF
+    amount_to_match = {'BOND':3, 'GS':2, 'MS':3, 'WFC':2, 'XLF':10}
+    diff = XLF - add_on_market_price_for_XLF
     
     # if current XLF price is greater than all stocks adding up
     # then we should convert all stocks and sell XLF
@@ -30,7 +34,7 @@ def arbitrage_XTF(market_price):
         exchange.send_add_message(symbol="XLF", dir=Dir.SELL, price=market_price["XLF"], size=positions["XLF"]) 
         
         # if we don't have enough stocks, buy them first so we have 3,2,3,2
-        check_and_buy_arbitrage_XTF_amount(positions,"components",amount_to_match)
+        check_and_buy_arbitrage_XLF_amount(exchange, positions,"components",amount_to_match, market_price)
 
         # convert stocks into XLF, BUY receives XLF
         exchange.send_convert_message(symbol="XLF",dir=Dir.BUY, size=10)
@@ -49,7 +53,7 @@ def arbitrage_XTF(market_price):
     # it also means we need to buy XLF
     elif diff < -100:
         # TODO if we don't have enough XLF, buy XLF such that we have 10
-        check_and_buy_arbitrage_XTF_amount(positions,"XLF",amount_to_match)
+        check_and_buy_arbitrage_XLF_amount(exchange,positions,"XLF",amount_to_match,market_price)
         
         # convert XLF to stocks, SELL gives out XLF and gives us components
         exchange.send_convert_message(symbol="XLF",dir=Dir.SELL, size=10)
