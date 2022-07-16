@@ -239,7 +239,7 @@ def arbitrage_XLF(exchange, fair_value):
 
             # sell seperate stocks
             for stock, amount in stock_amount.items():
-                if bid_price[stock] >= 1.05 * fair_value[stock]:
+                if bid_price[stock] >= 1.02 * fair_value[stock]:
                     exchange.send_limit_add_message(symbol=stock, dir=Dir.SELL, price=round(bid_price[stock]))
                     print("selling stock", stock, "at", bid_price[stock])
 
