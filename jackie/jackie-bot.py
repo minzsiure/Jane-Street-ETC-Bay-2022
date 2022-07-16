@@ -132,7 +132,7 @@ def main():
 
                 if message_type == "convert":
                     if symbol == "VALE":
-                        exchange.send_limit_add_message(symbol="VALE", dir=Dir.SELL, price=bid_price["VALE"])
+                        exchange.send_limit_add_message(symbol="VALE", dir=Dir.SELL, price=bid_price["VALE"] - 1)
                 else:
                     if symbol == "BOND":
                         exchange.send_limit_add_message(symbol="BOND", dir=Dir.SELL, price=1001)
@@ -147,7 +147,7 @@ def main():
 
                 if message_type == "convert":
                     if symbol == "VALE":
-                        exchange.send_limit_add_message(symbol="VALBZ", dir=Dir.SELL, price=bid_price["VALBZ"])
+                        exchange.send_limit_add_message(symbol="VALBZ", dir=Dir.SELL, price=bid_price["VALBZ"] - 1)
                 else:
                     if symbol == "BOND":
                         exchange.send_limit_add_message(symbol="BOND", dir=Dir.BUY, price=999)
@@ -183,7 +183,7 @@ def vale_valbz_arbitrage(exchange):
     #         exchange.send_limit_add_message(symbol="VALBZ", dir=Dir.BUY, price=ask_price["VALBZ"])
     if bid_price["VALBZ"] and ask_price["VALE"]:
         valbz_vale_difference = bid_price["VALBZ"] - ask_price["VALE"]
-        if valbz_vale_difference > 10: 
+        if valbz_vale_difference > 20: 
             exchange.send_limit_add_message(symbol="VALE", dir=Dir.BUY, price=ask_price["VALE"])
 
 # ~~~~~============== PROVIDED CODE ==============~~~~~
