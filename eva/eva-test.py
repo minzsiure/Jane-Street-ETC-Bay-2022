@@ -221,7 +221,7 @@ def arbitrage_XLF(exchange, fair_value):
                 print("converting stocks into 10 XLF")
 
                 # sell all XLF we have
-                exchange.send_limit_add_message(symbol="XLF", dir=Dir.SELL, price=round(fair_value["XLF"])
+                exchange.send_limit_add_message(symbol="XLF", dir=Dir.SELL, price=round(fair_value["XLF"]))
                 print("selling as many XLF as we can")
             
                 # buy stocks 3 BOND, 2 GS, 3 MS, 2 WFC 
