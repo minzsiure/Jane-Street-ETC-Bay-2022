@@ -182,9 +182,9 @@ def update_fair_value(exchange, message):
         fair_value["XTF"] = (3 * fair_value["BOND"] + 2 * fair_value["GS"] + 3 * fair_value["MS"] + 2 * fair_value["WFC"]) / 10
     
     # take advantage when fair_value and market prices don't match
-    if message["buy"] and fair_value[symbol] and message["buy"][0][0] > 1.001 * fair_value[symbol]:
+    if message["buy"] and fair_value[symbol] and message["buy"][0][0] > 1.0005 * fair_value[symbol]:
         exchange.send_limit_add_custom_size(symbol=symbol, dir=Dir.SELL, price=message["buy"][0][0], size=20)
-    if message["sell"] and fair_value[symbol] and message["sell"][0][0] < 0.999 * fair_value[symbol]:
+    if message["sell"] and fair_value[symbol] and message["sell"][0][0] < 0.9995 * fair_value[symbol]:
         exchange.send_limit_add_custom_size(symbol=symbol, dir=Dir.BUY, price=message["sell"][0][0], size=20)
 
 
