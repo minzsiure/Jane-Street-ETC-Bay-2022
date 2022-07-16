@@ -242,7 +242,7 @@ def arbitrage_XLF(exchange, market_price):
             print("selling stock", stock, "at", market_price[stock])
 
         # Buy up to 10 XLF
-        exchange.send_add_message(symbol="XLF", dir=Dir.BUY, price=market_price["XLF"], size=max(10, 100-positions["XLF"]) 
+        exchange.send_add_message(symbol="XLF", dir=Dir.BUY, price=market_price["XLF"], size=max(10, 100-positions["XLF"]) )
         print("buy XLF up to 10")
 
 
