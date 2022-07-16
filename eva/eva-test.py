@@ -226,24 +226,24 @@ def arbitrage_XLF(exchange, fair_value):
     # it means we have more profits trading seperately
     # then we should convert XLF and trade seperate stocks
     # it also means we need to buy XLF
-    elif diff < -100:
-        # convert XLF to stocks, SELL gives out XLF and gives us components
-        if positions["BOND"] < 97 and positions["GS"] < 98 and positions["MS"] < 97 and positions["WFC"] < 98:
-            # TODO if we don't have enough XLF, buy XLF such that we have 10
-            check_and_buy_arbitrage_XLF_amount(exchange,positions,"XLF",amount_to_match,fair_value)
+    # elif diff < -100:
+    #     # convert XLF to stocks, SELL gives out XLF and gives us components
+    #     if positions["BOND"] < 97 and positions["GS"] < 98 and positions["MS"] < 97 and positions["WFC"] < 98:
+    #         # TODO if we don't have enough XLF, buy XLF such that we have 10
+    #         check_and_buy_arbitrage_XLF_amount(exchange,positions,"XLF",amount_to_match,fair_value)
 
-            exchange.send_convert_message(symbol="XLF",dir=Dir.SELL, size=10)
-            print("converting 10XLFs to stocks")
+    #         exchange.send_convert_message(symbol="XLF",dir=Dir.SELL, size=10)
+    #         print("converting 10XLFs to stocks")
 
-        # sell seperate stocks 3 BOND, 2 GS, 3 MS, 2 WFC 
-        # TODO This needs to be based on our current position
-        for stock, amount in stock_amount.items():
-            exchange.send_add_message(symbol=stock, dir=Dir.SELL, price=round(fair_value[stock]), size=amount) 
-            print("selling stock", stock, "at", fair_value[stock])
+    #     # sell seperate stocks 3 BOND, 2 GS, 3 MS, 2 WFC 
+    #     # TODO This needs to be based on our current position
+    #     for stock, amount in stock_amount.items():
+    #         exchange.send_add_message(symbol=stock, dir=Dir.SELL, price=round(fair_value[stock]), size=amount) 
+    #         print("selling stock", stock, "at", fair_value[stock])
 
-        # Buy up to 10 XLF
-        exchange.send_add_message(symbol="XLF", dir=Dir.BUY, price=round(fair_value["XLF"]), size=max(10, 100-positions["XLF"]) )
-        print("buy XLF up to 10")
+    #     # Buy up to 10 XLF
+    #     exchange.send_add_message(symbol="XLF", dir=Dir.BUY, price=round(fair_value["XLF"]), size=max(10, 100-positions["XLF"]) )
+    #     print("buy XLF up to 10")
 
 
 # ~~~~~============== PROVIDED CODE ==============~~~~~
