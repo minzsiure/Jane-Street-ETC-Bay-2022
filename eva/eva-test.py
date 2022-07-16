@@ -208,7 +208,7 @@ def arbitrage_XLF(exchange, market_price):
     # it also means we need to buy XLF
     elif diff < -100:
         # TODO if we don't have enough XLF, buy XLF such that we have 10
-        check_and_buy_arbitrage_XLF_amount(positions,"XLF",amount_to_match)
+        check_and_buy_arbitrage_XLF_amount(exchange,positions,"XLF",amount_to_match)
         
         # convert XLF to stocks, SELL gives out XLF and gives us components
         exchange.send_convert_message(symbol="XLF",dir=Dir.SELL, size=10)
