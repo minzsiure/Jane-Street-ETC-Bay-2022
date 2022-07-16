@@ -184,7 +184,7 @@ def update_fair_value(exchange, message):
         ask_price[symbol] = message["sell"][0][0]
     if symbol in {"VALBZ", "GS", "MS", "WFC"}:
         if bid_price[symbol] and ask_price[symbol]:
-            cur_price = (bid_price[symbol] * message["buy"][0][1] + ask_price[symbol] * message["sell"][0][1]) / (message["buy"][0][1] + message["sell"][0][1])
+            cur_price = (bid_price[symbol] + ask_price[symbol]) / 2
         elif bid_price[symbol]:
             cur_price = bid_price[symbol]
         elif ask_price[symbol]:
