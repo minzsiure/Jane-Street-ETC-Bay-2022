@@ -37,6 +37,7 @@ def main():
     # have already bought/sold symbols and have non-zero positions.
     hello_message = exchange.read_message()
     print("First message from exchange:", hello_message)
+    positions = {}
     for record in hello_message["symbols"]:
         symbol = record["symbol"]
         position = record["position"]
@@ -59,7 +60,6 @@ def main():
     # of the VALE market.
     symbols = ["BOND", "VALBZ", "VALE", "GS", "MS", "WFC", "XLS"]
     limits = {"BOND":100, "VALBZ":10, "VALE":10, "GS":100, "MS":100, "WFC":100, "XLS":100}
-    positions = {}
     for symbol in symbols:
         positions[symbol] = 0
     bid_price = {}
