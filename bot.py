@@ -32,12 +32,21 @@ def main():
 
     exchange = ExchangeConnection(args=args)
 
+    symbols = ["BOND", "VALE", "VALBZ", "GS", "MS", "WFC", "XLF"]
+    positions = {}
+    for symbol in symbols:
+        positions[symbol] = 0
+
     # Store and print the "hello" message received from the exchange. This
     # contains useful information about your positions. Normally you start with
     # all positions at zero, but if you reconnect during a round, you might
     # have already bought/sold symbols and have non-zero positions.
     hello_message = exchange.read_message()
     print("First message from exchange:", hello_message)
+    for record in hello_message["symbols"]:
+        symbol = record["symbol"]
+        position = record["position"]
+        positions[symbol] = position
 
     #fair value
     fair_unit_price_in_cash = {'BOND':1000,'XLF':300,'GS':1500,'MS':1000,'WFC':1500}
@@ -45,8 +54,8 @@ def main():
     # Send an order for BOND at a good price, but it is low enough that it is
     # unlikely it will be traded against. Maybe there is a better price to
     # pick? Also, you will need to send more orders over time.
-    exchange.send_add_message(order_id=1, symbol="BOND", dir=Dir.BUY, price=999, size=100)
-    exchange.send_add_message(order_id=2, symbol="BOND", dir=Dir.SELL, price=1001, size=100)
+    exchange.send_add_message(symbol="BOND", dir=Dir.BUY, price=999, size=100)
+    exchange.send_add_message(symbol="BOND", dir=Dir.SELL, price=1001, size=100)
 
     # Set up some variables to track the bid and ask price of a symbol. Right
     # now this doesn't track much information, but it's enough to get a sense
@@ -92,6 +101,17 @@ def main():
             print(message)
         elif message["type"] == "fill":
             print(message)
+            symbol = message["symbol"]
+            dir = message["dir"]
+            size = message["size"]
+            if dir == Dir.BUY:
+                positions[symbol] += size
+                if symbol == "BOND":
+                    exchange.send_add_message(symbol="BOND", dir=Dir.BUY, price=999, size=size)
+            else:
+                positions[symbol] -= size
+                if symbol == "BOND":
+                    exchange.send_add_message(symbol="BOND", dir=Dir.SELL, price=1001, size=size)
         elif message["type"] == "book":
             symbol = message["symbol"]
             if message["buy"]:
@@ -129,6 +149,7 @@ class ExchangeConnection:
         self.exchange_hostname = args.exchange_hostname
         self.port = args.port
         self.exchange_socket = self._connect(add_socket_timeout=args.add_socket_timeout)
+        self.order_id = 0
 
         self._write_message({"type": "hello", "team": team_name.upper()})
 
@@ -140,13 +161,14 @@ class ExchangeConnection:
         return message
 
     def send_add_message(
-        self, order_id: int, symbol: str, dir: Dir, price: int, size: int
+        self, symbol: str, dir: Dir, price: int, size: int
     ):
         """Add a new order"""
+        self.order_id += 1
         self._write_message(
             {
                 "type": "add",
-                "order_id": order_id,
+                "order_id": self.order_id,
                 "symbol": symbol,
                 "dir": dir,
                 "price": price,

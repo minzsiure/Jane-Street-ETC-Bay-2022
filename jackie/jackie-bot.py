@@ -102,9 +102,9 @@ def main():
                 if symbol == "BOND":
                     exchange.send_add_message(symbol="BOND", dir=Dir.BUY, price=999, size=size)
             else:
+                positions[symbol] -= size
                 if symbol == "BOND":
                     exchange.send_add_message(symbol="BOND", dir=Dir.SELL, price=1001, size=size)
-                positions[symbol] -= size
 
         elif message["type"] == "book":
 
