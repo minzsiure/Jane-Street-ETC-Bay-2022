@@ -117,7 +117,8 @@ def main():
             size = message["size"]
             message_type = all_orders[message["order_id"]]["type"]
             # delete from pending orders
-            del pending_orders[message["order_id"]]
+            if message["order_id"] in pending_orders:
+                del pending_orders[message["order_id"]]
             if dir == Dir.BUY:
                 positions[symbol] += size
                 pending_positions[symbol]["buy"] -= size
