@@ -76,8 +76,8 @@ def main():
     # Send an order for BOND at a good price, but it is low enough that it is
     # unlikely it will be traded against. Maybe there is a better price to
     # pick? Also, you will need to send more orders over time.
-    exchange.send_add_message(symbol="BOND", dir=Dir.BUY, price=999, size=100)
-    exchange.send_add_message(symbol="BOND", dir=Dir.SELL, price=1001, size=100)
+    exchange.send_limit_add_message(symbol="BOND", dir=Dir.BUY, price=999)
+    exchange.send_limit_add_message(symbol="BOND", dir=Dir.SELL, price=1001)
 
     # Here is the main loop of the program. It will continue to read and
     # process messages in a loop until a "close" message is received. You
@@ -123,14 +123,15 @@ def main():
 
                 if message_type == "convert":
                     if symbol == "VALE":
-                        exchange.send_limit_add_message(symbol="VALE", dir=Dir.SELL, price=bid_price["VALE"] - 5)
+                        # exchange.send_limit_add_message(symbol="VALE", dir=Dir.SELL, price=bid_price["VALE"] - 5)
+                        pass
                 else:
                     if symbol == "BOND":
                         exchange.send_limit_add_message(symbol="BOND", dir=Dir.SELL, price=1001)
-                    if symbol == "VALE":
-                        exchange.send_limit_convert_message(symbol="VALE", dir=Dir.SELL, size=size)
-                    if symbol == "VALBZ":
-                        exchange.send_limit_convert_message(symbol="VALE", dir=Dir.BUY, size=size)
+                    # if symbol == "VALE":
+                    #     exchange.send_limit_convert_message(symbol="VALE", dir=Dir.SELL, size=size)
+                    # if symbol == "VALBZ":
+                    #     exchange.send_limit_convert_message(symbol="VALE", dir=Dir.BUY, size=size)
                 
             else:
                 positions[symbol] -= size
@@ -138,7 +139,8 @@ def main():
 
                 if message_type == "convert":
                     if symbol == "VALE":
-                        exchange.send_limit_add_message(symbol="VALBZ", dir=Dir.SELL, price=bid_price["VALBZ"] - 5)
+                        # exchange.send_limit_add_message(symbol="VALBZ", dir=Dir.SELL, price=bid_price["VALBZ"] - 5)
+                        pass
                 else:
                     if symbol == "BOND":
                         exchange.send_limit_add_message(symbol="BOND", dir=Dir.BUY, price=999)
@@ -146,11 +148,10 @@ def main():
         elif message["type"] == "book":
             update_fair_value(exchange, message)
 
-            # # Always run arbitrage buying engine. 
+            # Always run arbitrage buying engine. 
             # vale_valbz_arbitrage(exchange=exchange)
-            # print("*current positions", positions)
-            # do XLF arbitrage
-            if symbol == "XLF" and fair_value["BOND"] and fair_value["GS"] and fair_value["MS"] and fair_value["WFC"] and fair_value["XLF"]:
+            print(fair_value)
+            if fair_value["BOND"] and fair_value["GS"] and fair_value["MS"] and fair_value["WFC"] and fair_value["XLF"]:
                 print("*******hitting xlf arbitrage***********")
                 arbitrage_XLF(exchange, fair_value)
 
@@ -159,24 +160,30 @@ def update_fair_value(exchange, message):
     past_wt = 0.8
     cur_wt = 1 - past_wt
     symbol = message["symbol"]
+
     if message["buy"]:
         bid_price[symbol] = message["buy"][0][0]
     if message["sell"]:
         ask_price[symbol] = message["sell"][0][0]
+
     if symbol in {"VALBZ", "GS", "MS", "WFC"}:
-        if bid_price[symbol] and ask_price[symbol]:
-            cur_price = (bid_price[symbol] + ask_price[symbol]) / 2
-        elif bid_price[symbol]:
+        if message["buy"] and message["sell"]:
+            cur_price = (bid_price[symbol] * message["buy"][0][1] + ask_price[symbol] * message["sell"][0][1]) / (message["buy"][0][1] + message["sell"][0][1])
+        elif message["buy"]:
             cur_price = bid_price[symbol]
-        elif ask_price[symbol]:
+        elif message["sell"]:
             cur_price = ask_price[symbol]
+
         if fair_value[symbol]:
             fair_value[symbol] = past_wt * fair_value[symbol] + cur_wt * cur_price
         else:
             fair_value[symbol] = cur_price
+
     fair_value["VALE"] = fair_value["VALBZ"]
+    fair_value["BOND"] = 1000
     if fair_value["BOND"] and fair_value["GS"] and fair_value["MS"] and fair_value["WFC"]:
-        fair_value["XTF"] = (3 * fair_value["BOND"] + 2 * fair_value["GS"] + 3 * fair_value["MS"] + 2 * fair_value["WFC"]) / 10
+        fair_value["XLF"] = (3 * fair_value["BOND"] + 2 * fair_value["GS"] + 3 * fair_value["MS"] + 2 * fair_value["WFC"]) / 10
+    
     # take advantage when fair_value and market prices don't match
     if message["buy"] and fair_value[symbol] and message["buy"][0][0] > 1.0005 * fair_value[symbol]:
         exchange.send_limit_add_custom_size(symbol=symbol, dir=Dir.SELL, price=message["buy"][0][0], size=20)
@@ -201,7 +208,7 @@ def check_and_buy_arbitrage_XLF_amount(exchange, positions, category, amount_to_
         XLF_pos = positions["XLF"]
         # not enough, buy more xLf
         print("trying to buy XLF, condition:", XLF_pos - amount_to_match["XLF"] < 0)
-        print("We have", XLF_pos, "many XLF, and current ask is", ask_price["XLF"], "comparing .95 fair is",0.95*fair_value["XLF"])
+        print("We have", XLF_pos, "many XLF, and current ask is", ask_price["XLF"], "comparing .95 fair is",0.99*fair_value["XLF"])
         if XLF_pos - amount_to_match["XLF"] < 0:
             exchange.send_limit_add_custom_size(symbol="XLF", dir=Dir.BUY, price=round(bid_price["XLF"]), size=10)
             print("checked. not enough XLF", "buying at", fair_value["XLF"])
@@ -267,7 +274,7 @@ def arbitrage_XLF(exchange, fair_value):
 
             # sell seperate stocks
             for stock, amount in stock_amount.items():
-                if bid_price[stock] >= 1.05 * fair_value[stock]:
+                if bid_price[stock] >= 1.01 * fair_value[stock]:
                     exchange.send_limit_add_message(symbol=stock, dir=Dir.SELL, price=round(bid_price[stock]))
                     print("selling stock", stock, "at", bid_price[stock])
 
@@ -471,3 +478,4 @@ if __name__ == "__main__":
     ), "Please put your team name in the variable [team_name]."
 
     main()
+
