@@ -70,7 +70,7 @@ def main():
     market_price["BOND"] = 1000
     past_wt = 0.2
     cur_wt = 1 - past_wt
-    width = 0.003
+    width = 0.0035
 
     def update_market_price(message):
         symbol = message["symbol"]
@@ -144,14 +144,8 @@ def main():
             size = message["size"]
             if dir == Dir.BUY:
                 positions[symbol] += size
-                buy_price = round((1 - width) * market_price[symbol])
-                exchange.send_add_message(symbol=symbol, dir=Dir.BUY, price=buy_price, size=size)
-                print("ORDER FOR BUY " + str(size) + " SHARES OF " + symbol + " AT " + str(buy_price))
             else:
                 positions[symbol] -= size
-                sell_price = round((1 + width) * market_price[symbol])
-                exchange.send_add_message(symbol=symbol, dir=Dir.SELL, price=sell_price, size=size)
-                print("ORDER FOR SELL " + str(size) + " SHARES OF " + symbol + " AT " + str(sell_price))
         elif message["type"] == "book":
             update_market_price(message)
 
