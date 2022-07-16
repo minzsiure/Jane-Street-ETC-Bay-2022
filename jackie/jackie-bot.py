@@ -9,7 +9,6 @@
 import argparse
 from collections import deque
 from enum import Enum
-from lib2to3.pytree import convert
 import time
 import socket
 import json
