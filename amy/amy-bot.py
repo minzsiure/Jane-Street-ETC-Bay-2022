@@ -161,22 +161,22 @@ def main():
                 positions[symbol] += size
                 pending_positions[symbol]["buy"] -= size
 
-                if symbol == "BOND":
-                    exchange.send_limit_add_message(symbol="BOND", dir=Dir.SELL, price=1001)
-                if symbol == "VALE" and bid_price["VALBZ"]:
-                    exchange.send_limit_add_message(symbol="VALBZ", dir=Dir.SELL, price=bid_price["VALBZ"])
-                if symbol == "VALBZ" and bid_price["VALE"]:
-                    exchange.send_limit_add_message(symbol="VALE", dir=Dir.SELL, price=bid_price["VALE"])
+                #if symbol == "BOND":
+                #    exchange.send_limit_add_message(symbol="BOND", dir=Dir.SELL, price=1001)
+                #if symbol == "VALE" and bid_price["VALBZ"]:
+                #    exchange.send_limit_add_message(symbol="VALBZ", dir=Dir.SELL, price=bid_price["VALBZ"])
+                #if symbol == "VALBZ" and bid_price["VALE"]:
+                #    exchange.send_limit_add_message(symbol="VALE", dir=Dir.SELL, price=bid_price["VALE"])
             else:
                 positions[symbol] -= size
                 pending_positions[symbol]["sell"] -= size
 
-                if symbol == "BOND":
-                    exchange.send_limit_add_message(symbol="BOND", dir=Dir.BUY, price=999)
+                #if symbol == "BOND":
+                #    exchange.send_limit_add_message(symbol="BOND", dir=Dir.BUY, price=999)
         elif message["type"] == "book":
             update_fair_value(message)
-            if symbol == "VALE" or symbol == "VALBZ":
-                vale_valbz_arbitrage(exchange=exchange)
+            #if symbol == "VALE" or symbol == "VALBZ":
+            #    vale_valbz_arbitrage(exchange=exchange)
 
 def vale_valbz_arbitrage(exchange):
     if bid_price["VALE"] and ask_price["VALBZ"]:
