@@ -123,15 +123,14 @@ def main():
 
                 if message_type == "convert":
                     if symbol == "VALE":
-                        # exchange.send_limit_add_message(symbol="VALE", dir=Dir.SELL, price=bid_price["VALE"] - 5)
-                        pass
+                        exchange.send_limit_add_message(symbol="VALE", dir=Dir.SELL, price=bid_price["VALE"] - 5)
                 else:
                     if symbol == "BOND":
                         exchange.send_limit_add_message(symbol="BOND", dir=Dir.SELL, price=1001)
-                    # if symbol == "VALE":
-                    #     exchange.send_limit_convert_message(symbol="VALE", dir=Dir.SELL, size=size)
-                    # if symbol == "VALBZ":
-                    #     exchange.send_limit_convert_message(symbol="VALE", dir=Dir.BUY, size=size)
+                    if symbol == "VALE":
+                        exchange.send_limit_convert_message(symbol="VALE", dir=Dir.SELL, size=size)
+                    if symbol == "VALBZ":
+                        exchange.send_limit_convert_message(symbol="VALE", dir=Dir.BUY, size=size)
                 
             else:
                 positions[symbol] -= size
@@ -139,8 +138,7 @@ def main():
 
                 if message_type == "convert":
                     if symbol == "VALE":
-                        # exchange.send_limit_add_message(symbol="VALBZ", dir=Dir.SELL, price=bid_price["VALBZ"] - 5)
-                        pass
+                        exchange.send_limit_add_message(symbol="VALBZ", dir=Dir.SELL, price=bid_price["VALBZ"] - 5)
                 else:
                     if symbol == "BOND":
                         exchange.send_limit_add_message(symbol="BOND", dir=Dir.BUY, price=999)
@@ -149,7 +147,7 @@ def main():
             update_fair_value(exchange, message)
 
             # Always run arbitrage buying engine. 
-            # vale_valbz_arbitrage(exchange=exchange)
+            vale_valbz_arbitrage(exchange=exchange)
 
 
 def update_fair_value(exchange, message):
