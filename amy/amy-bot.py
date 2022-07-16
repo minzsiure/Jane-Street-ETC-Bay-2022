@@ -15,6 +15,23 @@ import json
 # ~~~~~============== CONFIGURATION  ==============~~~~~
 # Replace "REPLACEME" with your team name!
 team_name = "BASKINGSHARKS"
+pending_positions = {}
+team_name = "BASKINGSHARKS"
+all_orders = {} 
+positions = {}
+pending_positions = {}
+limits = {
+    "BOND": 100, 
+    "VALBZ": 10, 
+    "VALE": 10, 
+    "GS": 100, 
+    "MS": 100, 
+    "WFC": 100, 
+    "XLF": 100
+}
+fair_value = {}
+bid_price = {}
+ask_price = {}
 
 # ~~~~~============== MAIN LOOP ==============~~~~~
 
@@ -38,7 +55,6 @@ def main():
     # have already bought/sold symbols and have non-zero positions.
     hello_message = exchange.read_message()
     print("First message from exchange:", hello_message)
-    positions = {}
     for record in hello_message["symbols"]:
         symbol = record["symbol"]
         position = record["position"]
@@ -55,14 +71,15 @@ def main():
 
     # Set up some variables to track the bid and ask price of a symbol. Right
     # now this doesn't track much information, but it's enough to get a sense
-    # of the VALE market.
+    # of the VALE market.'
+    exchange.send_add_message(symbol="BOND", dir=Dir.BUY, price=999, size=100)
+    exchange.send_add_message(symbol="BOND", dir=Dir.SELL, price=1001, size=100)
     symbols = ["BOND", "VALBZ", "VALE", "GS", "MS", "WFC", "XLF"]
-    limits = {"BOND":100, "VALBZ":10, "VALE":10, "GS":100, "MS":100, "WFC":100, "XLF":100}
     for symbol in symbols:
         positions[symbol] = 0
-    bid_price = {}
-    ask_price = {}
-    fair_value = {}
+        pending_positions[symbol] = {}
+        pending_positions[symbol]["buy"] = 0
+        pending_positions[symbol]["sell"] = 0
     for symbol in symbols:
         bid_price[symbol] = None
         ask_price[symbol] = None
@@ -133,10 +150,35 @@ def main():
             size = message["size"]
             if dir == Dir.BUY:
                 positions[symbol] += size
+                pending_positions[symbol]["buy"] -= size
+
+                if symbol == "BOND":
+                    exchange.send_limit_add_message(symbol="BOND", dir=Dir.SELL, price=1001)
+                if symbol == "VALE" and bid_price["VALBZ"]:
+                    exchange.send_limit_add_message(symbol="VALBZ", dir=Dir.SELL, price=bid_price["VALBZ"])
+                if symbol == "VALBZ" and bid_price["VALE"]:
+                    exchange.send_limit_add_message(symbol="VALE", dir=Dir.SELL, price=bid_price["VALE"])
             else:
                 positions[symbol] -= size
+                pending_positions[symbol]["sell"] -= size
+
+                if symbol == "BOND":
+                    exchange.send_limit_add_message(symbol="BOND", dir=Dir.BUY, price=999)
         elif message["type"] == "book":
             update_fair_value(message)
+            if symbol == "VALE" or symbol == "VALBZ":
+                vale_valbz_arbitrage(exchange=exchange)
+
+def vale_valbz_arbitrage(exchange):
+    if bid_price["VALE"] and ask_price["VALBZ"]:
+        vale_valbz_difference = bid_price["VALE"] - ask_price["VALBZ"]
+        if vale_valbz_difference > 10: 
+            exchange.send_limit_add_message(symbol="VALBZ", dir=Dir.BUY, price=ask_price["VALBZ"])
+
+    if bid_price["VALBZ"] and ask_price["VALE"]:
+        valbz_vale_difference = bid_price["VALBZ"] - ask_price["VALE"]
+        if valbz_vale_difference > 10: 
+            exchange.send_limit_add_message(symbol="VALE", dir=Dir.BUY, price=ask_price["VALE"])
 
 
 
@@ -184,6 +226,15 @@ class ExchangeConnection:
                 "size": size,
             }
         )
+
+    def send_limit_add_message(self, symbol:str, dir: Dir, price: int):
+        """Send an order with maximum size possible based on existing limits and current orders."""
+        if dir == Dir.BUY:
+            buy_limit = limits[symbol] - positions[symbol] - pending_positions[symbol]["buy"]
+            self.send_add_message(symbol, dir, price, buy_limit)
+        else: 
+            sell_limit = limits[symbol] + positions[symbol] - pending_positions[symbol]["sell"]
+            self.send_add_message(symbol, dir, price, sell_limit)
 
     def send_convert_message(self, order_id: int, symbol: str, dir: Dir, size: int):
         """Convert between related symbols"""
