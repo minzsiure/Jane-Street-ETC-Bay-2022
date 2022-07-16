@@ -182,13 +182,13 @@ def update_fair_value(exchange, message):
 def vale_valbz_arbitrage(exchange):
     if bid_price["VALE"] and ask_price["VALBZ"]:
         vale_valbz_difference = bid_price["VALE"] - ask_price["VALBZ"]
-        if vale_valbz_difference > 20 + bid_price["VALE"] * 0.01: 
-            exchange.send_limit_add_message(symbol="VALBZ", dir=Dir.BUY, price=ask_price["VALBZ"] + 5)
+        if vale_valbz_difference > 20: 
+            exchange.send_limit_add_message(symbol="VALBZ", dir=Dir.BUY, price=ask_price["VALBZ"])
     
     if bid_price["VALBZ"] and ask_price["VALE"]:
         valbz_vale_difference = bid_price["VALBZ"] - ask_price["VALE"]
-        if valbz_vale_difference > 20 + bid_price["VALBZ"] * 0.01: 
-            exchange.send_limit_add_message(symbol="VALE", dir=Dir.BUY, price=ask_price["VALE"] + 5)
+        if valbz_vale_difference > 20: 
+            exchange.send_limit_add_message(symbol="VALE", dir=Dir.BUY, price=ask_price["VALE"])
 
 # ~~~~~============== PROVIDED CODE ==============~~~~~
 
@@ -308,6 +308,7 @@ class ExchangeConnection:
     def send_cancel_message(self, order_id: int):
         """Cancel an existing order"""
         self._write_message({"type": "cancel", "order_id": order_id})
+        all_orders.pop(order_id, None)
 
     def _connect(self, add_socket_timeout):
         s = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
