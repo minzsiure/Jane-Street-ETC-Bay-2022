@@ -87,7 +87,7 @@ def main():
             if market_price[symbol]:
                 past_price = market_price[symbol]
                 market_price[symbol] = past_wt * market_price[symbol] + cur_wt * cur_price
-                if market_price[symbol] <= 0.99 * past_price or market_price >= 1.01 * past_price:
+                if market_price[symbol] <= 0.99 * past_price or market_price[symbol] >= 1.01 * past_price:
                     exchange.send_add_message(symbol=symbol, dir=Dir.BUY, price=round(0.999 * market_price[symbol]), size=10)
                     print("ORDER FOR BUY 10 SHARES OF " + symbol + " AT " + str(round(0.999 * market_price[symbol])))
                     exchange.send_add_message(symbol=symbol, dir=Dir.SELL, price=round(1.001 * market_price[symbol]), size=10)
