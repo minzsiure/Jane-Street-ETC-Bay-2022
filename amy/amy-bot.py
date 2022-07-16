@@ -7,6 +7,7 @@
 import argparse
 from collections import deque
 from enum import Enum
+import math
 import time
 import socket
 import json
@@ -67,7 +68,7 @@ def main():
         ask_price[symbol] = None
         market_price[symbol] = None
     market_price["BOND"] = 1000
-    past_wt = 0.8
+    past_wt = 0.2
     cur_wt = 1 - past_wt
 
     def update_market_price(message):
@@ -85,11 +86,15 @@ def main():
                 cur_price = ask_price[symbol]
             if market_price[symbol]:
                 market_price[symbol] = past_wt * market_price[symbol] + cur_wt * cur_price
+                #exchange.send_add_message(symbol=symbol, dir=Dir.BUY, price=market_price[symbol] - 1, size=10)
+                #print("ORDER FOR BUY 10 SHARES OF " + symbol + " AT " + str(market_price[symbol] - 1))
+                #exchange.send_add_message(symbol=symbol, dir=Dir.SELL, price=market_price[symbol] + 1, size=10)
+                #print("ORDER FOR SELL 10 SHARES OF " + symbol + " AT " + str(market_price[symbol] + 1))
             else:
                 # once we have market price, place an initial order of 100
-                exchange.send_add_message(symbol=symbol, dir=Dir.BUY, price=cur_price - 1, size=100)
+                exchange.send_add_message(symbol=symbol, dir=Dir.BUY, price=math.round(cur_price - 1), size=100)
                 print("ORDER FOR BUY 100 SHARES OF " + symbol + " AT " + str(cur_price - 1))
-                exchange.send_add_message(symbol=symbol, dir=Dir.SELL, price=cur_price + 1, size=100)
+                exchange.send_add_message(symbol=symbol, dir=Dir.SELL, price=math.round(cur_price + 1), size=100)
                 print("ORDER FOR SELL 100 SHARES OF " + symbol + " AT " + str(cur_price + 1))
                 market_price[symbol] = cur_price
         market_price["VALE"] = market_price["VALBZ"]
@@ -131,11 +136,11 @@ def main():
             size = message["size"]
             if dir == Dir.BUY:
                 positions[symbol] += size
-                exchange.send_add_message(symbol=symbol, dir=Dir.BUY, price=market_price[symbol] - 1, size=size)
+                exchange.send_add_message(symbol=symbol, dir=Dir.BUY, price=math.round(market_price[symbol] - 1), size=size)
                 print("ORDER FOR BUY " + str(size) + " SHARES OF " + symbol + " AT " + str(market_price[symbol] - 1))
             else:
                 positions[symbol] -= size
-                exchange.send_add_message(symbol=symbol, dir=Dir.SELL, price=market_price[symbol] + 1, size=size)
+                exchange.send_add_message(symbol=symbol, dir=Dir.SELL, price=math.round(market_price[symbol] + 1), size=size)
                 print("ORDER FOR SELL " + str(size) + " SHARES OF " + symbol + " AT " + str(market_price[symbol] - 1))
         elif message["type"] == "book":
             update_market_price(message)
