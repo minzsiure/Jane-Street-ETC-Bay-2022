@@ -196,6 +196,7 @@ def arbitrage_XLF(exchange, fair_value):
     stock_amount = {'BOND':3, 'GS':2, 'MS':3, 'WFC':2}
     amount_to_match = {'BOND':3, 'GS':2, 'MS':3, 'WFC':2, 'XLF':10}
     diff = XLF - add_on_fair_value_for_XLF
+    print("currt diff", diff)
     
     # if current XLF price is greater than all stocks adding up
     # then we should convert all stocks and sell XLF
