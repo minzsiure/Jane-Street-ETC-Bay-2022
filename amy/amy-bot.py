@@ -123,33 +123,33 @@ def main():
                 positions[symbol] += size
                 pending_positions[symbol]["buy"] -= size
 
-                if message_type == "convert":
-                    if symbol == "VALE":
-                        exchange.send_limit_add_message(symbol="VALE", dir=Dir.SELL, price=bid_price["VALE"] - 5)
-                else:
-                    if symbol == "BOND":
-                        exchange.send_limit_add_message(symbol="BOND", dir=Dir.SELL, price=1001)
-                    if symbol == "VALE":
-                        exchange.send_limit_convert_message(symbol="VALE", dir=Dir.SELL, size=size)
-                    if symbol == "VALBZ":
-                        exchange.send_limit_convert_message(symbol="VALE", dir=Dir.BUY, size=size)
+                #if message_type == "convert":
+                #    if symbol == "VALE":
+                #        exchange.send_limit_add_message(symbol="VALE", dir=Dir.SELL, price=bid_price["VALE"] - 5)
+                #else:
+                #    if symbol == "BOND":
+                #        exchange.send_limit_add_message(symbol="BOND", dir=Dir.SELL, price=1001)
+                #    if symbol == "VALE":
+                #        exchange.send_limit_convert_message(symbol="VALE", dir=Dir.SELL, size=size)
+                #    if symbol == "VALBZ":
+                #        exchange.send_limit_convert_message(symbol="VALE", dir=Dir.BUY, size=size)
                 
             else:
                 positions[symbol] -= size
                 pending_positions[symbol]["sell"] -= size
 
-                if message_type == "convert":
-                    if symbol == "VALE":
-                        exchange.send_limit_add_message(symbol="VALBZ", dir=Dir.SELL, price=bid_price["VALBZ"] - 5)
-                else:
-                    if symbol == "BOND":
-                        exchange.send_limit_add_message(symbol="BOND", dir=Dir.BUY, price=999)
+                #if message_type == "convert":
+                #    if symbol == "VALE":
+                #        exchange.send_limit_add_message(symbol="VALBZ", dir=Dir.SELL, price=bid_price["VALBZ"] - 5)
+                #else:
+                #    if symbol == "BOND":
+                #        exchange.send_limit_add_message(symbol="BOND", dir=Dir.BUY, price=999)
 
         elif message["type"] == "book":
             update_fair_value(exchange, message)
 
             # Always run arbitrage buying engine. 
-            vale_valbz_arbitrage(exchange=exchange)
+            #vale_valbz_arbitrage(exchange=exchange)
 
 def cancel_orders(exchange):
     to_delete = []
@@ -170,9 +170,9 @@ def cancel_orders(exchange):
 def place_orders(exchange):
     for symbol in symbols:
         if bid_price[symbol] and fair_value[symbol] and bid_price[symbol] > 1.0005 * fair_value[symbol]:
-            exchange.send_limit_add_custom_size(symbol=symbol, dir=Dir.SELL, price=bid_price[symbol], size=20)
+            exchange.send_limit_add_custom_size(symbol=symbol, dir=Dir.SELL, price=bid_price[symbol], size=10)
         if ask_price[symbol] and fair_value[symbol] and ask_price[symbol] < 0.9995 * fair_value[symbol]:
-            exchange.send_limit_add_custom_size(symbol=symbol, dir=Dir.BUY, price=ask_price[symbol], size=20)
+            exchange.send_limit_add_custom_size(symbol=symbol, dir=Dir.BUY, price=ask_price[symbol], size=10)
 
 
 def update_fair_value(exchange, message):
