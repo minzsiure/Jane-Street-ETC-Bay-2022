@@ -13,8 +13,6 @@ import time
 import socket
 import json
 
-from pyrsistent import s
-
 # ~~~~~============== CONFIGURATION  ==============~~~~~
 # Replace "REPLACEME" with your team name!
 team_name = "BASKINGSHARKS"
