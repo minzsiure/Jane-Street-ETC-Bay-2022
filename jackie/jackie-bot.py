@@ -28,6 +28,7 @@ limits = {
     "WFC": 100, 
     "XLS": 100
 }
+market_price = {}
 
 # ~~~~~============== MAIN LOOP ==============~~~~~
 
@@ -130,27 +131,14 @@ def main():
                     exchange.send_limit_add_message(symbol="BOND", dir=Dir.BUY, price=999)
 
         elif message["type"] == "book":
+            print(message)
+            symbol = message["symbol"]
 
-            if message["symbol"] == "VALE":
 
-                def best_price(side):
-                    if message[side]:
-                        return message[side][0][0]
-
-                vale_bid_price = best_price("buy")
-                vale_ask_price = best_price("sell")
-
-                now = time.time()
-
-                if now > vale_last_print_time + 1:
-                    vale_last_print_time = now
-                    print(
-                        {
-                            "vale_bid_price": vale_bid_price,
-                            "vale_ask_price": vale_ask_price,
-                        }
-                    )
-
+# ========== ARBITRAGE CODE ==========
+def vale_valbz_arbitrage():
+    pass
+# ====================================
 
 # ~~~~~============== PROVIDED CODE ==============~~~~~
 
