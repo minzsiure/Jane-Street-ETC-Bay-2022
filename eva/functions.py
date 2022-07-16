@@ -38,7 +38,8 @@ def arbitrage_XLF(exchange, market_price):
         # if we don't have enough stocks, buy them first so we have 3,2,3,2
         check_and_buy_arbitrage_XLF_amount(exchange, positions,"components",amount_to_match, market_price)
 
-        # convert stocks into XLF, BUY receives XLF
+        # check pos, if valid then convert stocks into XLF, BUY receives XLF
+        
         exchange.send_convert_message(symbol="XLF",dir=Dir.BUY, size=10)
 
         # sell all XLF we have
