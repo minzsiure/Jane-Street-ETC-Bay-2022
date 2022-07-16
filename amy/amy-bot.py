@@ -169,9 +169,9 @@ def cancel_orders(exchange):
 
 def place_orders(exchange):
     for symbol in symbols:
-        if bid_price[symbol] and fair_value[symbol] and bid_price[symbol] > 1.0005 * fair_value[symbol]:
+        if bid_price[symbol] and fair_value[symbol] and bid_price[symbol] > 1.001 * fair_value[symbol]:
             exchange.send_limit_add_custom_size(symbol=symbol, dir=Dir.SELL, price=bid_price[symbol], size=10)
-        if ask_price[symbol] and fair_value[symbol] and ask_price[symbol] < 0.9995 * fair_value[symbol]:
+        if ask_price[symbol] and fair_value[symbol] and ask_price[symbol] < 0.999 * fair_value[symbol]:
             exchange.send_limit_add_custom_size(symbol=symbol, dir=Dir.BUY, price=ask_price[symbol], size=10)
 
 
