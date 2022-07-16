@@ -139,7 +139,7 @@ def main():
             #     vale_valbz_arbitrage(exchange=exchange)
             
             # do XLF arbitrage
-            if market_price["BOND"] and market_price["GS"] and market_price["MS"] and market_price["WFC"] and market_price["XLF"]:
+            if symbol == "XLF" and market_price["BOND"] and market_price["GS"] and market_price["MS"] and market_price["WFC"] and market_price["XLF"]:
                 arbitrage_XLF(exchange, market_price)
 
 
