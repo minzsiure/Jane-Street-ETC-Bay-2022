@@ -157,7 +157,7 @@ def main():
         if market_price["BOND"] and market_price["GS"] and market_price["MS"] and market_price["WFC"] and market_price["XLF"]:
             arbitrage_XLF(exchange, market_price)
 
-def check_and_buy_arbitrage_XLF_amount(exchange, positions, category, amount_to_match):
+def check_and_buy_arbitrage_XLF_amount(exchange, positions, category, amount_to_match,market_price):
     if category == "XLF":
         XLF_pos = positions["XLF"]
         # not enough, buy more xLf
@@ -189,7 +189,7 @@ def arbitrage_XLF(exchange, market_price):
         exchange.send_add_message(symbol="XLF", dir=Dir.SELL, price=market_price["XLF"], size=positions["XLF"]) 
         
         # if we don't have enough stocks, buy them first so we have 3,2,3,2
-        check_and_buy_arbitrage_XLF_amount(exchange, positions,"components",amount_to_match)
+        check_and_buy_arbitrage_XLF_amount(exchange, positions,"components",amount_to_match, market_price)
 
         # convert stocks into XLF, BUY receives XLF
         exchange.send_convert_message(symbol="XLF",dir=Dir.BUY, size=10)
@@ -208,7 +208,7 @@ def arbitrage_XLF(exchange, market_price):
     # it also means we need to buy XLF
     elif diff < -100:
         # TODO if we don't have enough XLF, buy XLF such that we have 10
-        check_and_buy_arbitrage_XLF_amount(exchange,positions,"XLF",amount_to_match)
+        check_and_buy_arbitrage_XLF_amount(exchange,positions,"XLF",amount_to_match,market_price)
         
         # convert XLF to stocks, SELL gives out XLF and gives us components
         exchange.send_convert_message(symbol="XLF",dir=Dir.SELL, size=10)
