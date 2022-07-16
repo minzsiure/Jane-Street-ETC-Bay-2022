@@ -185,7 +185,7 @@ def check_and_buy_arbitrage_XLF_amount(exchange, positions, category, amount_to_
         for comp in current_pos.keys():
             if positions[comp] - amount_to_match[comp] < 0:
                 exchange.send_add_message(symbol=comp, dir=Dir.BUY, price=market_price[comp], size=amount_to_match[comp]-current_pos[comp]) 
-                print("checked. not enough", comp, "buying", amount_to_match[comp]-current_pos[comp]), "at", market_price[comp])
+                print("checked. not enough", comp, "buying", amount_to_match[comp]-current_pos[comp], "at", market_price[comp])
 
 def arbitrage_XLF(exchange, market_price):
     conversion_fee = 100
