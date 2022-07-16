@@ -54,6 +54,8 @@ def main():
     symbols = ["BOND", "VALBZ", "VALE", "GS", "MS", "WLC", "XLS"]
     bid_price = {}
     ask_price = {}
+    market_price = {}
+    market_price["BOND"] = 1000
     for symbol in symbols:
         bid_price[symbol] = None
         ask_price[symbol] = None
@@ -94,6 +96,17 @@ def main():
                 bid_price[symbol] = message["buy"][0][0]
             if message["sell"]:
                 ask_price[symbol] = message["sell"][0][0]
+            if symbol in {"VALBZ", "GS", "MS", "WLC"}:
+                if bid_price[symbol] and ask_price[symbol]:
+                    market_price[symbol] = (bid_price[symbol] + ask_price[symbol]) / 2
+                elif bid_price[symbol]:
+                    market_price[symbol] = bid_price[symbol]
+                elif ask_price[symbol]:
+                    market_price[symbol] = ask_price[symbol]
+            market_price["VALE"] = market_price["VALBZ"]
+            if market_price["BOND"] and market_price["GS"] and market_price["MS"] and market_price["WFC"]:
+                market_price["XTF"] = (3 * market_price["BOND"] + 2 * market_price["GS"] + 3 * market_price["MS"] + 2 * market_price["WFC"]) / 10
+
 
 
 # ~~~~~============== PROVIDED CODE ==============~~~~~
