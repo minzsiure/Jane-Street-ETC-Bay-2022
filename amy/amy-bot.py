@@ -166,6 +166,13 @@ def cancel_orders(exchange):
     for order_id in to_delete:
         del pending_orders[order_id]
 
+def place_orders(exchange):
+    for symbol in symbols:
+        if bid_price[symbol] and fair_value[symbol] and bid_price[symbol] > 1.0005 * fair_value[symbol]:
+            exchange.send_limit_add_custom_size(symbol=symbol, dir=Dir.SELL, price=bid_price[symbol], size=20)
+        if ask_price[symbol] and fair_value[symbol] and ask_price[symbol] < 0.9995 * fair_value[symbol]:
+            exchange.send_limit_add_custom_size(symbol=symbol, dir=Dir.BUY, price=ask_price[symbol], size=20)
+
 
 def update_fair_value(exchange, message):
     past_wt = 0.8
@@ -190,10 +197,7 @@ def update_fair_value(exchange, message):
     if fair_value["BOND"] and fair_value["GS"] and fair_value["MS"] and fair_value["WFC"]:
         fair_value["XTF"] = (3 * fair_value["BOND"] + 2 * fair_value["GS"] + 3 * fair_value["MS"] + 2 * fair_value["WFC"]) / 10
     # take advantage when fair_value and market prices don't match
-    if message["buy"] and fair_value[symbol] and message["buy"][0][0] > 1.0005 * fair_value[symbol]:
-        exchange.send_limit_add_custom_size(symbol=symbol, dir=Dir.SELL, price=message["buy"][0][0], size=20)
-    if message["sell"] and fair_value[symbol] and message["sell"][0][0] < 0.9995 * fair_value[symbol]:
-        exchange.send_limit_add_custom_size(symbol=symbol, dir=Dir.BUY, price=message["sell"][0][0], size=20)
+    place_orders(exchange)
     cancel_orders(exchange)
 
 
