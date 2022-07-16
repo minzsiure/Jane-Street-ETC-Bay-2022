@@ -69,8 +69,10 @@ def main():
     market_price["BOND"] = 1000
     past_wt = 0.5
     cur_wt = 1 - past_wt
+    print(market_price)
 
     def update_market_price(message):
+        print(market_price)
         symbol = message["symbol"]
         if message["buy"]:
             bid_price[symbol] = message["buy"][0][0]
@@ -137,7 +139,6 @@ def main():
                 positions[symbol] -= size
                 exchange.send_add_message(symbol=symbol, dir=Dir.SELL, price=market_price[symbol] + 1, size=size)
         elif message["type"] == "book":
-            print("BOOK ISSUED")
             update_market_price(message)
 
 
