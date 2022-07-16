@@ -78,8 +78,8 @@ def main():
     # Send an order for BOND at a good price, but it is low enough that it is
     # unlikely it will be traded against. Maybe there is a better price to
     # pick? Also, you will need to send more orders over time.
-    exchange.send_limit_add_message(symbol="BOND", dir=Dir.BUY, price=999)
-    exchange.send_limit_add_message(symbol="BOND", dir=Dir.SELL, price=1001)
+    exchange.send_limit_add_message(symbol="BOND", dir=Dir.BUY, price=998)
+    exchange.send_limit_add_message(symbol="BOND", dir=Dir.SELL, price=1002)
 
     # Set up some variables to track the bid and ask price of a symbol. Right
     # now this doesn't track much information, but it's enough to get a sense
