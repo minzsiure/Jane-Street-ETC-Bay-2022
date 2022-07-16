@@ -178,7 +178,7 @@ def arbitrage_XLF(market_price):
     # compute how curernt market price add up for 10 xLf
     add_on_market_price_for_XLF = 3*BOND + 2*GS + 3*MS + 2*WFC
     stock_amount = {'BOND':3, 'GS':2, 'MS':3, 'WFC':2}
-    amount_to_match = {'BOND':3, 'GS':2, 'MS':3, 'WFC':2, 'XFC':10}
+    amount_to_match = {'BOND':3, 'GS':2, 'MS':3, 'WFC':2, 'XLF':10}
     diff = XLF - add_on_market_price_for_XLF
     
     # if current XLF price is greater than all stocks adding up
