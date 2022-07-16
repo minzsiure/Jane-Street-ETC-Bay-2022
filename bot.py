@@ -151,6 +151,7 @@ def main():
             # Always run arbitrage buying engine. 
             # vale_valbz_arbitrage(exchange=exchange)
             if symbol == "XLF" and fair_value["BOND"] and fair_value["GS"] and fair_value["MS"] and fair_value["WFC"] and fair_value["XLF"]:
+                print("*******hitting xlf arbitrage***********")
                 arbitrage_XLF(exchange, fair_value)
 
 
@@ -205,7 +206,7 @@ def check_and_buy_arbitrage_XLF_amount(exchange, positions, category, amount_to_
         XLF_pos = positions["XLF"]
         # not enough, buy more xLf
         print("trying to buy XLF, condition:", XLF_pos - amount_to_match["XLF"] < 0)
-        print("We have", XLF_pos, "many XLF, and current ask is", ask_price["XLF"], "comparing .95 fair is",0.95*fair_value["XLF"])
+        print("We have", XLF_pos, "many XLF, and current ask is", ask_price["XLF"], "comparing .95 fair is",0.99*fair_value["XLF"])
         if XLF_pos - amount_to_match["XLF"] < 0:
             exchange.send_limit_add_custom_size(symbol="XLF", dir=Dir.BUY, price=round(bid_price["XLF"]), size=10)
             print("checked. not enough XLF", "buying at", fair_value["XLF"])
@@ -271,7 +272,7 @@ def arbitrage_XLF(exchange, fair_value):
 
             # sell seperate stocks
             for stock, amount in stock_amount.items():
-                if bid_price[stock] >= 1.05 * fair_value[stock]:
+                if bid_price[stock] >= 1.01 * fair_value[stock]:
                     exchange.send_limit_add_message(symbol=stock, dir=Dir.SELL, price=round(bid_price[stock]))
                     print("selling stock", stock, "at", bid_price[stock])
 
