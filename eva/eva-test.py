@@ -13,7 +13,7 @@ import json
 
 # ~~~~~============== CONFIGURATION  ==============~~~~~
 # Replace "REPLACEME" with your team name!
-team_name = "Basking Sharks"
+team_name = "BASKINGSHARKS"
 
 # ~~~~~============== MAIN LOOP ==============~~~~~
 
@@ -48,6 +48,15 @@ def main():
     # Set up some variables to track the bid and ask price of a symbol. Right
     # now this doesn't track much information, but it's enough to get a sense
     # of the VALE market.
+    # Set up some variables to track the bid and ask price of a symbol. Right
+    # now this doesn't track much information, but it's enough to get a sense
+    # of the VALE market.
+    # symbols = ["BOND", "VALBZ", "VALE", "GS", "MS", "WLC", "XLS"]
+    # bid_price = {}
+    # ask_price = {}
+    # for symbol in symbols:
+    #     bid_price[symbol] = None
+    #     ask_price[symbol] = None
     vale_bid_price, vale_ask_price = None, None
     vale_last_print_time = time.time()
 
@@ -228,7 +237,7 @@ def parse_arguments():
 if __name__ == "__main__":
     # Check that [team_name] has been updated.
     assert (
-        team_name != "Basking Sharks"
+        team_name != ""
     ), "Please put your team name in the variable [team_name]."
 
     main()

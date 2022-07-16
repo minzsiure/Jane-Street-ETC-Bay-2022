@@ -13,7 +13,7 @@ import json
 
 # ~~~~~============== CONFIGURATION  ==============~~~~~
 # Replace "REPLACEME" with your team name!
-team_name = "baskingsharks"
+team_name = "BASKINGSHARKS"
 
 # ~~~~~============== MAIN LOOP ==============~~~~~
 
@@ -38,17 +38,28 @@ def main():
     # have already bought/sold symbols and have non-zero positions.
     hello_message = exchange.read_message()
     print("First message from exchange:", hello_message)
-    unit_fair_price_in_cash = {'BOND':1000, 'XLF':300, 'GS':1500, 'MS':1000, 'WFC':1500}
+
+    #fair value
+    fair_unit_price_in_cash = {'BOND':1000,'XLF':300,'GS':1500,'MS':1000,'WFC':1500}
+
     # Send an order for BOND at a good price, but it is low enough that it is
     # unlikely it will be traded against. Maybe there is a better price to
     # pick? Also, you will need to send more orders over time.
-    exchange.send_add_message(order_id=1, symbol="BOND", dir=Dir.BUY, price=990, size=1)
+    exchange.send_add_message(order_id=1, symbol="BOND", dir=Dir.BUY, price=999, size=100)
+    exchange.send_add_message(order_id=2, symbol="BOND", dir=Dir.SELL, price=1001, size=100)
 
     # Set up some variables to track the bid and ask price of a symbol. Right
     # now this doesn't track much information, but it's enough to get a sense
     # of the VALE market.
-    vale_bid_price, vale_ask_price = None, None
-    vale_last_print_time = time.time()
+    symbols = ["BOND", "VALBZ", "VALE", "GS", "MS", "WFC", "XLS"]
+    bid_price = {}
+    ask_price = {}
+    market_price = {}
+    for symbol in symbols:
+        bid_price[symbol] = None
+        ask_price[symbol] = None
+        market_price[symbol] = None
+    market_price["BOND"] = 1000
 
     # Here is the main loop of the program. It will continue to read and
     # process messages in a loop until a "close" message is received. You
@@ -81,25 +92,22 @@ def main():
         elif message["type"] == "fill":
             print(message)
         elif message["type"] == "book":
-            if message["symbol"] == "VALE":
+            symbol = message["symbol"]
+            if message["buy"]:
+                bid_price[symbol] = message["buy"][0][0]
+            if message["sell"]:
+                ask_price[symbol] = message["sell"][0][0]
+            if symbol in {"VALBZ", "GS", "MS", "WFC"}:
+                if bid_price[symbol] and ask_price[symbol]:
+                    market_price[symbol] = (bid_price[symbol] + ask_price[symbol]) / 2
+                elif bid_price[symbol]:
+                    market_price[symbol] = bid_price[symbol]
+                elif ask_price[symbol]:
+                    market_price[symbol] = ask_price[symbol]
+            market_price["VALE"] = market_price["VALBZ"]
+            if market_price["BOND"] and market_price["GS"] and market_price["MS"] and market_price["WFC"]:
+                market_price["XTF"] = (3 * market_price["BOND"] + 2 * market_price["GS"] + 3 * market_price["MS"] + 2 * market_price["WFC"]) / 10
 
-                def best_price(side):
-                    if message[side]:
-                        return message[side][0][0]
-
-                vale_bid_price = best_price("buy")
-                vale_ask_price = best_price("sell")
-
-                now = time.time()
-
-                if now > vale_last_print_time + 1:
-                    vale_last_print_time = now
-                    print(
-                        {
-                            "vale_bid_price": vale_bid_price,
-                            "vale_ask_price": vale_ask_price,
-                        }
-                    )
 
 
 # ~~~~~============== PROVIDED CODE ==============~~~~~
