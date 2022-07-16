@@ -148,7 +148,7 @@ def main():
 
             # # Always run arbitrage buying engine. 
             # vale_valbz_arbitrage(exchange=exchange)
-
+            print("*current positions", positions)
             # do XLF arbitrage
             if symbol == "XLF" and fair_value["BOND"] and fair_value["GS"] and fair_value["MS"] and fair_value["WFC"] and fair_value["XLF"]:
                 arbitrage_XLF(exchange, fair_value)
@@ -229,34 +229,34 @@ def arbitrage_XLF(exchange, fair_value):
     # if current XLF price is greater than all stocks adding up
     # then we should convert all stocks and sell XLF
     # it also means we need to buy all stocks seperately
-    if diff > 100: 
-        # sell all XLF we have
-        if positions["XLF"] > 0 and bid_price["XLF"] > 1.05*fair_value["XLF"]:
-            exchange.send_limit_add_message(symbol="XLF", dir=Dir.SELL, price=round(bid_price["XLF"]))
-            print("selling all XLF at", round(bid_price["XLF"]))
+    # if diff > 100: 
+    #     # sell all XLF we have
+    #     if positions["XLF"] > 0 and bid_price["XLF"] > 1.05*fair_value["XLF"]:
+    #         exchange.send_limit_add_message(symbol="XLF", dir=Dir.SELL, price=round(bid_price["XLF"]))
+    #         print("selling all XLF at", round(bid_price["XLF"]))
         
-            # if we don't have enough stocks, buy them first so we have 3,2,3,2
-            if check_and_buy_arbitrage_XLF_amount(exchange, positions,"components",amount_to_match, fair_value):
+    #         # if we don't have enough stocks, buy them first so we have 3,2,3,2
+    #         if check_and_buy_arbitrage_XLF_amount(exchange, positions,"components",amount_to_match, fair_value):
 
-                # convert stocks into XLF, BUY receives XLF
-                exchange.send_limit_convert_message(symbol="XLF", dir=Dir.BUY, size=10)
-                print("converting stocks into 10 XLF")
+    #             # convert stocks into XLF, BUY receives XLF
+    #             exchange.send_limit_convert_message(symbol="XLF", dir=Dir.BUY, size=10)
+    #             print("converting stocks into 10 XLF")
 
-                # sell all XLF we have
-                exchange.send_limit_add_message(symbol="XLF", dir=Dir.SELL, price=round(fair_value["XLF"]))
-                print("selling as many XLF as we can")
+    #             # sell all XLF we have
+    #             exchange.send_limit_add_message(symbol="XLF", dir=Dir.SELL, price=round(fair_value["XLF"]))
+    #             print("selling as many XLF as we can")
             
-                # buy stocks 3 BOND, 2 GS, 3 MS, 2 WFC 
-                for stock, amount in stock_amount.items():
-                    if ask_price[stock] <= 0.95 * fair_value[stock]:
-                        exchange.send_limit_add_message(symbol=stock, dir=Dir.BUY, price=round(ask_price[stock]))
-                        print("sending orders to buy 3:2:3:2 stocks, buying", amount, stock, "at", ask_price[stock])
+    #             # buy stocks 3 BOND, 2 GS, 3 MS, 2 WFC 
+    #             for stock, amount in stock_amount.items():
+    #                 if ask_price[stock] <= 0.95 * fair_value[stock]:
+    #                     exchange.send_limit_add_message(symbol=stock, dir=Dir.BUY, price=round(ask_price[stock]))
+    #                     print("sending orders to buy 3:2:3:2 stocks, buying", amount, stock, "at", ask_price[stock])
 
     # if all stocks adding up is greater than current XLF market price, 
     # it means we have more profits trading seperately
     # then we should convert XLF and trade seperate stocks
     # it also means we need to buy XLF
-    elif diff < -100:
+    if diff < -100:
         # convert XLF to stocks, SELL gives out XLF and gives us components
         
         print("hitting here 1")
