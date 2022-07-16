@@ -223,11 +223,11 @@ class ExchangeConnection:
         """Send an order with maximum size possible based on existing limits and current orders."""
         if dir == Dir.BUY:
             buy_limit = limits[symbol] - positions[symbol] - pending_positions[symbol]["buy"]
-            print("BUYING WITH SIZE", symbol, buy_limit, positions[symbol], pending_positions[symbol])
+            print("BUY", symbol, buy_limit, positions[symbol], pending_positions[symbol])
             self.send_add_message(symbol, dir, price, buy_limit)
         else: 
             sell_limit = limits[symbol] + positions[symbol] - pending_positions[symbol]["sell"]
-            print("BUYING WITH SIZE", symbol, buy_limit, positions[symbol], pending_positions[symbol])
+            print("SELL", symbol, sell_limit, positions[symbol], pending_positions[symbol])
             self.send_add_message(symbol, dir, price, sell_limit)
 
 
