@@ -55,10 +55,11 @@ def main():
     bid_price = {}
     ask_price = {}
     market_price = {}
-    market_price["BOND"] = 1000
     for symbol in symbols:
         bid_price[symbol] = None
         ask_price[symbol] = None
+        market_price[symbol] = None
+    market_price["BOND"] = 1000
 
     # Here is the main loop of the program. It will continue to read and
     # process messages in a loop until a "close" message is received. You
