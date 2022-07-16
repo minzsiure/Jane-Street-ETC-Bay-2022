@@ -76,8 +76,8 @@ def main():
     # Send an order for BOND at a good price, but it is low enough that it is
     # unlikely it will be traded against. Maybe there is a better price to
     # pick? Also, you will need to send more orders over time.
-    exchange.send_add_message(symbol="BOND", dir=Dir.BUY, price=999, size=100)
-    exchange.send_add_message(symbol="BOND", dir=Dir.SELL, price=1001, size=100)
+    exchange.send_limit_add_message(symbol="BOND", dir=Dir.BUY, price=999)
+    exchange.send_limit_add_message(symbol="BOND", dir=Dir.SELL, price=1001)
 
     # Here is the main loop of the program. It will continue to read and
     # process messages in a loop until a "close" message is received. You
@@ -150,7 +150,9 @@ def main():
 
             # Always run arbitrage buying engine. 
             # vale_valbz_arbitrage(exchange=exchange)
-            if symbol == "XLF" and fair_value["BOND"] and fair_value["GS"] and fair_value["MS"] and fair_value["WFC"] and fair_value["XLF"]:
+            print(fair_value)
+            if fair_value["BOND"] and fair_value["GS"] and fair_value["MS"] and fair_value["WFC"] and fair_value["XLF"]:
+                print("*******hitting xlf arbitrage***********")
                 arbitrage_XLF(exchange, fair_value)
 
 
@@ -182,9 +184,9 @@ def update_fair_value(exchange, message):
         fair_value["XLF"] = (3 * fair_value["BOND"] + 2 * fair_value["GS"] + 3 * fair_value["MS"] + 2 * fair_value["WFC"]) / 10
     
     # take advantage when fair_value and market prices don't match
-    if message["buy"] and fair_value[symbol] and message["buy"][0][0] > 1.001 * fair_value[symbol]:
+    if message["buy"] and fair_value[symbol] and message["buy"][0][0] > 1.0005 * fair_value[symbol]:
         exchange.send_limit_add_custom_size(symbol=symbol, dir=Dir.SELL, price=message["buy"][0][0], size=20)
-    if message["sell"] and fair_value[symbol] and message["sell"][0][0] < 0.999 * fair_value[symbol]:
+    if message["sell"] and fair_value[symbol] and message["sell"][0][0] < 0.9995 * fair_value[symbol]:
         exchange.send_limit_add_custom_size(symbol=symbol, dir=Dir.BUY, price=message["sell"][0][0], size=20)
 
 
@@ -205,7 +207,7 @@ def check_and_buy_arbitrage_XLF_amount(exchange, positions, category, amount_to_
         XLF_pos = positions["XLF"]
         # not enough, buy more xLf
         print("trying to buy XLF, condition:", XLF_pos - amount_to_match["XLF"] < 0)
-        print("We have", XLF_pos, "many XLF, and current ask is", ask_price["XLF"], "comparing .95 fair is",0.95*fair_value["XLF"])
+        print("We have", XLF_pos, "many XLF, and current ask is", ask_price["XLF"], "comparing .95 fair is",0.99*fair_value["XLF"])
         if XLF_pos - amount_to_match["XLF"] < 0:
             exchange.send_limit_add_custom_size(symbol="XLF", dir=Dir.BUY, price=round(bid_price["XLF"]), size=10)
             print("checked. not enough XLF", "buying at", fair_value["XLF"])
@@ -271,7 +273,7 @@ def arbitrage_XLF(exchange, fair_value):
 
             # sell seperate stocks
             for stock, amount in stock_amount.items():
-                if bid_price[stock] >= 1.05 * fair_value[stock]:
+                if bid_price[stock] >= 1.01 * fair_value[stock]:
                     exchange.send_limit_add_message(symbol=stock, dir=Dir.SELL, price=round(bid_price[stock]))
                     print("selling stock", stock, "at", bid_price[stock])
 
