@@ -150,6 +150,7 @@ def main():
 
             # Always run arbitrage buying engine. 
             # vale_valbz_arbitrage(exchange=exchange)
+            print(fair_value)
             if fair_value["BOND"] and fair_value["GS"] and fair_value["MS"] and fair_value["WFC"] and fair_value["XLF"]:
                 print("*******hitting xlf arbitrage***********")
                 arbitrage_XLF(exchange, fair_value)
