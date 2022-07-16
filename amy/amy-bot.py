@@ -52,6 +52,14 @@ def main():
     # now this doesn't track much information, but it's enough to get a sense
     # of the VALE market.
     symbols = ["BOND", "VALBZ", "VALE", "GS", "MS", "WFC", "XLS"]
+    limits = {"BOND":100, "VALBZ":10, "VALE":10, "GS":100, "MS":100, "WFC":100, "XLS":100}
+    positions = {}
+    for symbol in symbols:
+        positions[symbol] = 0
+    for record in hello_message["symbols"]:
+        symbol = record["symbol"]
+        position = record["position"]
+        positions[symbol] = position
     bid_price = {}
     ask_price = {}
     market_price = {}
@@ -73,6 +81,7 @@ def main():
     # message. Sending a message in response to every exchange message will
     # cause a feedback loop where your bot's messages will quickly be
     # rate-limited and ignored. Please, don't do that!
+    id = 1
     while True:
         message = exchange.read_message()
 
@@ -91,6 +100,21 @@ def main():
             print(message)
         elif message["type"] == "fill":
             print(message)
+            symbol = message["symbol"]
+            dir = message["dir"]
+            size = message["size"]
+            if dir == Dir.BUY:
+                positions[symbol] += size
+            else:
+                positions[symbol] -= size
+
+            buy_left = limits[symbol] - positions[symbol]
+            sell_left = positions[symbol] - limits[symbol]
+            if market_price[symbol]:
+                exchange.send_add_message(order_id=id, symbol=symbol, dir=Dir.BUY, price=market_price[symbol] - 1, size=buy_left)
+                id += 1
+                exchange.send_add_message(order_id=id, symbol=symbol, dir=Dir.SELL, price=market_price[symbol] + 1, size=sell_left)
+                id += 1
         elif message["type"] == "book":
             symbol = message["symbol"]
             if message["buy"]:
