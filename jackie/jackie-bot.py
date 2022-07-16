@@ -31,7 +31,7 @@ limits = {
 market_price = {}
 bid_price = {}
 ask_price = {}
-past_weight = 0.8
+past_weight = 0.9
 current_weight = 1 - past_weight
 
 # ~~~~~============== MAIN LOOP ==============~~~~~
@@ -128,10 +128,10 @@ def main():
 
                 if symbol == "BOND":
                     exchange.send_limit_add_message(symbol="BOND", dir=Dir.SELL, price=1001)
-                # if symbol == "VALE" and bid_price["VALBZ"]:
-                #     exchange.send_limit_add_message(symbol="VALBZ", dir=Dir.SELL, price=bid_price["VALBZ"])
-                # if symbol == "VALBZ" and bid_price["VALE"]:
-                #     exchange.send_limit_add_message(symbol="VALE", dir=Dir.SELL, price=bid_price["VALE"])
+                if symbol == "VALE" and bid_price["VALBZ"]:
+                    exchange.send_limit_add_message(symbol="VALBZ", dir=Dir.SELL, price=bid_price["VALBZ"])
+                if symbol == "VALBZ" and bid_price["VALE"]:
+                    exchange.send_limit_add_message(symbol="VALE", dir=Dir.SELL, price=bid_price["VALE"])
 
             else:
                 positions[symbol] -= size
@@ -141,11 +141,11 @@ def main():
                     exchange.send_limit_add_message(symbol="BOND", dir=Dir.BUY, price=999)
 
         elif message["type"] == "book":
-            print(message)
+            # print(message)
             update_market_price(message)
 
         # Always run arbitrage buying engine. 
-        # vale_valbz_arbitrage(exchange=exchange)
+        vale_valbz_arbitrage(exchange=exchange)
 
 
 def update_market_price(message):
@@ -156,22 +156,17 @@ def update_market_price(message):
     if message["sell"]:
         ask_price[symbol] = message["sell"][0][0]
 
-    if symbol in {"VALE", "VALBZ", "GS", "MS", "WFC"}:
-        if bid_price[symbol] and ask_price[symbol]:
-            current_price = (message["buy"][0][1] * bid_price[symbol] + message["sell"][0][1] * ask_price[symbol]) / (message["buy"][0][1] + message["sell"][0][1])
-        elif bid_price[symbol]:
-            current_price = bid_price[symbol]
-        elif ask_price[symbol]:
-            current_price = ask_price[symbol]
-        
-        if market_price[symbol]:
-            market_price[symbol] = past_weight * market_price[symbol] + current_weight * current_price
-        else:
-            market_price[symbol] = current_price
-
-    if market_price["BOND"] and market_price["GS"] and market_price["MS"] and market_price["WFC"]:
-        market_price["XTF"] = (3 * market_price["BOND"] + 2 * market_price["GS"] + 3 * market_price["MS"] + 2 * market_price["WFC"]) / 10
-
+    if message["buy"] and message["sell"]:
+        current_price = (message["buy"][0][1] * bid_price[symbol] + message["sell"][0][1] * ask_price[symbol]) / (message["buy"][0][1] + message["sell"][0][1])
+    elif message["buy"]:
+        current_price = bid_price[symbol]
+    elif message["sell"]:
+        current_price = ask_price[symbol]
+    
+    if market_price[symbol]:
+        market_price[symbol] = past_weight * market_price[symbol] + current_weight * current_price
+    else:
+        market_price[symbol] = current_price
 
 def vale_valbz_arbitrage(exchange):
     if bid_price["VALE"] and ask_price["VALBZ"]:
