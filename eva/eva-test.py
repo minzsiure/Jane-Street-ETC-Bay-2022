@@ -247,12 +247,12 @@ def arbitrage_XLF(exchange, fair_value):
             # TODO This needs to be based on our current position
             for stock, amount in stock_amount.items():
                 if bid_price[stock] >= 1.05 * fair_value[stock]:
-                    exchange.send_limit_add_message(symbol=stock, dir=Dir.SELL, price=round(bid_price[stock])
+                    exchange.send_limit_add_message(symbol=stock, dir=Dir.SELL, price=round(bid_price[stock]))
                     print("selling stock", stock, "at", bid_price[stock])
 
             # Buy up to 10 XLF
             if ask_price["XLF"] <= 0.95 * fair_value["XLF"]:
-                exchange.send_limit_add_message(symbol="XLF", dir=Dir.BUY, price=round(ask_price["XLF"])
+                exchange.send_limit_add_message(symbol="XLF", dir=Dir.BUY, price=round(ask_price["XLF"]))
                 print("buy XLF up to 10")
 
 
