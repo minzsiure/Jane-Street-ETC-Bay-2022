@@ -17,7 +17,6 @@ import json
 # Replace "REPLACEME" with your team name!
 team_name = "BASKINGSHARKS"
 all_orders = {} 
-convert_orders = {}
 pending_positions = {}
 positions = {}
 limits = {
@@ -116,6 +115,8 @@ def main():
             print(message)
         elif message["type"] == "reject":
             print(message)
+            if message["error"] == "BAD_SIZE":
+                print(all_orders[message["order_id"]])
         elif message["type"] == "fill":
             print(message)
 
