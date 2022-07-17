@@ -203,12 +203,12 @@ def vale_valbz_arbitrage(exchange):
             exchange.send_limit_add_message(symbol="VALE", dir=Dir.BUY, price=ask_price["VALE"])
 
 ############## XLF Arbitrage ##############
-def check_and_buy_arbitrage_XLF_amount(exchange, positions, category, amount_to_match,fair_value):
+def check_and_buy_arbitrage_XLF_amount(exchange, positions, category, amount_to_match,fair_value,spread):
     if category == "XLF":
         XLF_pos = positions["XLF"]
         # not enough, buy more xLf
         print("trying to buy XLF, condition:", XLF_pos - amount_to_match["XLF"] < 0)
-        print("We have", XLF_pos, "many XLF, and current ask is", ask_price["XLF"], "comparing .95 fair is",0.97*fair_value["XLF"])
+        print("We have", XLF_pos, "many XLF, and current ask is", ask_price["XLF"], "comparing .95 fair is",spread[0]*fair_value["XLF"])
         if XLF_pos - amount_to_match["XLF"] < 0:
             exchange.send_limit_add_custom_size(symbol="XLF", dir=Dir.BUY, price=round(bid_price["XLF"]), size=10)
             print("checked. not enough XLF", "buying at", fair_value["XLF"])
@@ -224,6 +224,12 @@ def arbitrage_XLF(exchange, fair_value):
     amount_to_match = {'BOND':3, 'GS':2, 'MS':3, 'WFC':2, 'XLF':10}
     diff = XLF - add_on_fair_value_for_XLF
     print("currt diff", diff)
+    sell_pref_spread = [0.97, 1.015]
+    buy_pref_spread = [0.985, 1.03]
+    if positions["XLF"] < 0:
+        spread = buy_pref_spread
+    else:
+        spread = sell_pref_spread
 
     # if all stocks adding up is greater than current XLF market price, 
     # it means we have more profits trading seperately
@@ -232,14 +238,14 @@ def arbitrage_XLF(exchange, fair_value):
     if diff < -100:
         # convert XLF to stocks, SELL gives out XLF and gives us components
         # TODO if we don't have enough XLF, buy XLF such that we have 10
-        if check_and_buy_arbitrage_XLF_amount(exchange,positions,"XLF",amount_to_match,fair_value): 
+        if check_and_buy_arbitrage_XLF_amount(exchange,positions,"XLF",amount_to_match,fair_value,spread): 
             #after buying stocks we need, we convert
             exchange.send_limit_convert_message(symbol="XLF", dir=Dir.SELL, size=10)
             print("converting 10XLFs to stocks")
 
             # sell seperate stocks
             for stock, amount in stock_amount.items():
-                if bid_price[stock] >= 1.015 * fair_value[stock]:
+                if bid_price[stock] >= spread[1] * fair_value[stock]:
                     exchange.send_limit_add_message(symbol=stock, dir=Dir.SELL, price=round(bid_price[stock]))
                     print("selling stock", stock, "at", bid_price[stock])
 
