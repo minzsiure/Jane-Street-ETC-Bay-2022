@@ -209,7 +209,7 @@ def check_and_buy_arbitrage_XLF_amount(exchange, positions, category, amount_to_
         # not enough, buy more xLf
         print("trying to buy XLF, condition:", XLF_pos - amount_to_match["XLF"] < 0)
         print("We have", XLF_pos, "many XLF, and current ask is", ask_price["XLF"], "comparing .95 fair is",spread[0]*fair_value["XLF"])
-        if XLF_pos - amount_to_match["XLF"] < 0:
+        if XLF_pos - amount_to_match["XLF"] < 0 and ask_price["XLF"] <= spread[0]*fair_value["XLF"]:
             exchange.send_limit_add_custom_size(symbol="XLF", dir=Dir.BUY, price=round(bid_price["XLF"]), size=10)
             print("checked. not enough XLF", "buying at", fair_value["XLF"])
             return True
