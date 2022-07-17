@@ -167,12 +167,11 @@ def cancel_orders(exchange):
     for order_id in to_delete:
         del pending_orders[order_id]
 
-def place_orders(exchange):
-    for symbol in symbols:
-        if bid_price[symbol] and fair_value[symbol] and bid_price[symbol] > 1.0012 * fair_value[symbol]:
-            exchange.send_limit_add_custom_size(symbol=symbol, dir=Dir.SELL, price=bid_price[symbol], size=10)
-        if ask_price[symbol] and fair_value[symbol] and ask_price[symbol] < 0.9988 * fair_value[symbol]:
-            exchange.send_limit_add_custom_size(symbol=symbol, dir=Dir.BUY, price=ask_price[symbol], size=10)
+def place_orders(exchange, symbol):
+    if bid_price[symbol] and fair_value[symbol] and bid_price[symbol] > 1.0005 * fair_value[symbol]:
+        exchange.send_limit_add_custom_size(symbol=symbol, dir=Dir.SELL, price=bid_price[symbol], size=10)
+    if ask_price[symbol] and fair_value[symbol] and ask_price[symbol] < 0.9995 * fair_value[symbol]:
+        exchange.send_limit_add_custom_size(symbol=symbol, dir=Dir.BUY, price=ask_price[symbol], size=10)
 
 
 def update_fair_value(exchange, message):
@@ -185,7 +184,7 @@ def update_fair_value(exchange, message):
         ask_price[symbol] = message["sell"][0][0]
     if symbol in {"VALBZ", "GS", "MS", "WFC"}:
         if bid_price[symbol] and ask_price[symbol]:
-            cur_price = (bid_price[symbol] * message["buy"][0][1] + ask_price[symbol] * message["sell"][0][1]) / (message["buy"][0][1] + message["sell"][0][1])
+            cur_price = (bid_price[symbol] + ask_price[symbol]) / 2
         elif bid_price[symbol]:
             cur_price = bid_price[symbol]
         elif ask_price[symbol]:
@@ -198,8 +197,10 @@ def update_fair_value(exchange, message):
     if fair_value["BOND"] and fair_value["GS"] and fair_value["MS"] and fair_value["WFC"]:
         fair_value["XLF"] = (3 * fair_value["BOND"] + 2 * fair_value["GS"] + 3 * fair_value["MS"] + 2 * fair_value["WFC"]) / 10
     # take advantage when fair_value and market prices don't match
-    place_orders(exchange)
-    cancel_orders(exchange)
+    if fair_value[symbol]:
+        print("FAIR VALUE OF " + str(symbol) + " : " + str(round(fair_value[symbol])))
+    place_orders(exchange, symbol)
+    #cancel_orders(exchange)
 
 
 def vale_valbz_arbitrage(exchange):
